@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DeadlineNoon — Survivor</title>
+<style>
+:root{--bg:#0f1115;--panel:#151826;--ink:#e7e9ee;--muted:#9aa3b2;--accent:#7c5cff;--line:#262a3b;--good:#2ecc71;--bad:#ff6b6b;--warn:#f1c40f;--info:#4da3ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+.wrap{max-width:1300px;margin:0 auto;padding:24px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.brand{font-weight:800;font-size:28px}.accent{color:var(--accent)}
+.badge{border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
+.grid{display:grid;gap:16px}@media(min-width:1200px){.grid{grid-template-columns:2fr 1fr}}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.08)),var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+h2{margin:0 0 10px}.sub{color:var(--muted);font-size:14px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+select,textarea,button{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:10px;font:inherit}
+button{cursor:pointer}
+table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{text-align:left;font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:12px}
+.chip.warn{color:var(--warn)}.chip.info{color:var(--info)}.chip.ok{color:var(--good)}.chip.bad{color:var(--bad)}
+.muted{color:var(--muted)}footer{margin-top:16px;color:var(--muted);font-size:12px;text-align:center}
+.scroll{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:12px}
+.tiny{font-size:12px}
+.legend{display:flex;gap:8px;flex-wrap:wrap}.legend .chip{border-style:dashed}
+.logo{height:20px;width:20px;vertical-align:-4px;margin-right:6px;border-radius:2px;background:#0002}
+.logo-lg{height:28px;width:28px;vertical-align:-6px;margin-right:8px;border-radius:4px;background:#0002}
+.badge-inline{display:inline-flex;align-items:center;gap:6px}
+.kit{display:flex;flex-wrap:wrap;gap:6px}
+.kit .tile{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:4px 8px}
+.kit .used{opacity:.35}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="badge">Week <span id="hdr-week"></span> • <span id="hdr-date"></span></div>
+      <div class="brand">Deadline<span class="accent">Noon</span> — Survivor</div>
+      <div class="sub">9 contestants • ties = loss • special weeks • 40% special-usage alerts • real logos</div>
+    </div>
+    <div class="badge mono">localhost preview</div>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: Tracker -->
+    <section class="card">
+      <div class="row">
+        <div>
+          <h2>Survivor Tracker</h2>
+          <div class="legend">
+            <span class="chip ok tiny">ACTIVE</span>
+            <span class="chip bad tiny">ELIMINATED</span>
+            <span class="chip warn tiny">About to pass 40% (special)</span>
+            <span class="chip info tiny">≥40% used (special)</span>
+          </div>
+        </div>
+        <div class="controls">
+          <label class="tiny muted">Week <select id="weekSelect"></select></label>
+          <button id="advanceWeek">Advance ➜</button>
+          <span class="pill mono" id="activeCount"></span>
+          <span class="pill mono" id="weekType"></span>
+        </div>
+      </div>
+
+      <div class="scroll" style="margin-top:10px">
+        <table id="tracker">
+          <thead><tr><th>Player</th><th>Status</th><th>Used Teams</th><th class="mono">Available</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:16px">Special Week Readiness</h3>
+      <div class="tiny muted" style="margin-bottom:6px">If a player has no eligible team from a special set at that week, they’re auto-eliminated.</div>
+      <div class="scroll">
+        <table id="specialStatus">
+          <thead><tr><th>Player</th><th>Thanksgiving+BF</th><th>Available</th><th>Christmas</th><th>Available</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- RIGHT: Rules + Make Picks -->
+    <section class="card">
+      <div class="row"><h2>Rules</h2><span class="chip">Implemented</span></div>
+      <ul class="tiny">
+        <li>Pick one team weekly; <strong>no reuse</strong> per entry.</li>
+        <li><strong>Ties = losses</strong> (elimination).</li>
+        <li><strong>Special weeks</strong> are independent: picks must come from that week’s set (TG+BF / XMAS).</li>
+        <li>Auto-elimination at a special week if no team left from that set.</li>
+        <li><strong>40% special-usage alerts</strong> (popup + badges): TG threshold 4/8; XMAS threshold 3/6.</li>
+      </ul>
+
+      <h3 style="margin-top:10px">Make Picks (Weeks 4+ or remaining W3)</h3>
+      <div class="tiny muted" style="margin-bottom:6px">Choose a week, entry, then an <strong>available</strong> team (logos shown). Saved picks persist locally.</div>
+      <div class="controls" style="margin-bottom:8px">
+        <label class="tiny muted">Week
+          <select id="pickWeek"></select>
+        </label>
+        <label class="tiny muted">Entry
+          <select id="pickPlayer"></select>
+        </label>
+        <label class="tiny muted">Team
+          <select id="pickTeam"></select>
+        </label>
+        <button id="savePick">Save Pick</button>
+      </div>
+      <div id="availabilityTiles" class="kit"></div>
+
+      <details style="margin-top:12px">
+        <summary><strong>Data (read-only seed below; your edits persist locally)</strong></summary>
+        <textarea id="dataEditor" rows="12" spellcheck="false" style="width:100%"></textarea>
+      </details>
+    </section>
+  </div>
+
+  <footer>© <span id="year"></span> DeadlineNoon — Survivor</footer>
+</div>
+
+<script>
+/* ===== Logos & Teams ===== */
+const ESPN = {"ARI":"ari","ATL":"atl","BAL":"bal","BUF":"buf","CAR":"car","CHI":"chi","CIN":"cin","CLE":"cle","DAL":"dal","DEN":"den","DET":"det","GB":"gb","HOU":"hou","IND":"ind","JAX":"jac","KC":"kc","LV":"lv","LAC":"lac","LAR":"lar","MIA":"mia","MIN":"min","NE":"ne","NO":"no","NYG":"nyg","NYJ":"nyj","PHI":"phi","PIT":"pit","SEA":"sea","SF":"sf","TB":"tb","TEN":"ten","WAS":"wsh"};
+const TEAM_NAME = {"ARI":"Cardinals","ATL":"Falcons","BAL":"Ravens","BUF":"Bills","CAR":"Panthers","CHI":"Bears","CIN":"Bengals","CLE":"Browns","DAL":"Cowboys","DEN":"Broncos","DET":"Lions","GB":"Packers","HOU":"Texans","IND":"Colts","JAX":"Jaguars","KC":"Chiefs","LV":"Raiders","LAC":"Chargers","LAR":"Rams","MIA":"Dolphins","MIN":"Vikings","NE":"Patriots","NO":"Saints","NYG":"Giants","NYJ":"Jets","PHI":"Eagles","PIT":"Steelers","SEA":"Seahawks","SF":"49ers","TB":"Buccaneers","TEN":"Titans","WAS":"Commanders"};
+const NFL = Object.keys(TEAM_NAME);
+const logo = c => `https://a.espncdn.com/i/teamlogos/nfl/500/${ESPN[c]}.png`;
+
+/* ===== Special Weeks ===== */
+const TG_BF = ["GB","DET","KC","DAL","CIN","BAL","CHI","PHI"]; // 8
+const XMAS  = ["DAL","WAS","DET","MIN","DEN","KC"];            // 6
+const SPECIAL_THRESHOLD = 0.40;
+const TG_THRESHOLD = Math.ceil(TG_BF.length * SPECIAL_THRESHOLD);   // 4
+const XMAS_THRESHOLD = Math.ceil(XMAS.length  * SPECIAL_THRESHOLD); // 3
+
+/* ===== Seeded Data (W1–W3) ===== */
+/* Results: W=win, L=loss, T=tie, P=pending */
+const STARTER = {
+  meta: {
+    season: 2025,
+    currentWeek: 3,
+    weekDates: {
+      "1":"2025-09-07","2":"2025-09-14","3":"2025-09-21",
+      "4":"2025-09-28","5":"2025-10-05","6":"2025-10-12","7":"2025-10-19","8":"2025-10-26",
+      "9":"2025-11-02","10":"2025-11-09","11":"2025-11-16","12":"2025-11-23",
+      "TG":"2025-11-27","13":"2025-11-30","14":"2025-12-07","15":"2025-12-14",
+      "XMAS":"2025-12-25","16":"2025-12-28","17":"2026-01-04"
+    }
+  },
+  players: [
+    {name:"Cremaster Reflex 1"},
+    {name:"Cremaster Reflex 2"},
+    {name:"BulletProof Tiger 1"},
+    {name:"BulletProof Tiger 2"},
+    {name:"BulletProof Tiger 3"},
+    {name:"ChiPhi 1"},
+    {name:"Creamsicle Cabana"},
+    {name:"Gambling Grocer-7"},
+    {name:"SlyBiz"}
+  ],
+  picks: [
+    // Week 1 (per sheet)
+    {week:1, player:"SlyBiz",               team:"ARI", result:"P"},
+    {week:1, player:"Cremaster Reflex 1",   team:"ARI", result:"P"},
+    {week:1, player:"Cremaster Reflex 2",   team:"DEN", result:"P"},
+    {week:1, player:"BulletProof Tiger 1",  team:"DEN", result:"P"},
+    {week:1, player:"BulletProof Tiger 2",  team:"DEN", result:"P"},
+    {week:1, player:"BulletProof Tiger 3",  team:"ARI", result:"P"},
+    {week:1, player:"ChiPhi 1",             team:"JAX", result:"P"},
+    {week:1, player:"Gambling Grocer-7",    team:"CIN", result:"P"},
+    {week:1, player:"Creamsicle Cabana",    team:"WAS", result:"P"},
+
+    // Week 2
+    {week:2, player:"SlyBiz",               team:"DAL", result:"P"},
+    {week:2, player:"Cremaster Reflex 1",   team:"LAR", result:"P"},
+    {week:2, player:"Cremaster Reflex 2",   team:"ARI", result:"P"},
+    {week:2, player:"BulletProof Tiger 1",  team:"ARI", result:"P"},
+    {week:2, player:"BulletProof Tiger 2",  team:"BAL", result:"P"},
+    {week:2, player:"BulletProof Tiger 3",  team:"DAL", result:"P"},
+    {week:2, player:"ChiPhi 1",             team:"DET", result:"P"},
+    {week:2, player:"Gambling Grocer-7",    team:"DET", result:"P"},
+    {week:2, player:"Creamsicle Cabana",    team:"DAL", result:"P"},
+
+    // Week 3 (BUF = WIN Thu)
+    {week:3, player:"SlyBiz",               team:"GB",  result:"P"},
+    {week:3, player:"Cremaster Reflex 1",   team:"SEA", result:"P"},
+    {week:3, player:"Cremaster Reflex 2",   team:"TB",  result:"P"},
+    {week:3, player:"BulletProof Tiger 1",  team:"KC",  result:"P"},
+    {week:3, player:"BulletProof Tiger 2",  team:"SEA", result:"P"},
+    {week:3, player:"BulletProof Tiger 3",  team:"BUF", result:"W"},
+    {week:3, player:"ChiPhi 1",             team:"KC",  result:"P"},
+    {week:3, player:"Gambling Grocer-7",    team:"KC",  result:"P"},
+    {week:3, player:"Creamsicle Cabana",    team:"SEA", result:"P"}
+  ]
+};
+
+/* ===== Persistence ===== */
+const LS_KEY = "deadlineNoon_survivor_v4";
+function loadData(){ try{ const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw);}catch(e){} return STARTER; }
+function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+
+/* ===== Utils ===== */
+const uniq = a => Array.from(new Set(a));
+const weekIsSpecial = w => ["TG","XMAS"].includes(String(w));
+const isTG = w => String(w)==="TG"; const isXMAS = w => String(w)==="XMAS";
+const wLabel = w => isTG(w)?"Thanksgiving+BF":(isXMAS(w)?"Christmas":"W"+w);
+const fmtDate = d => { try{ return new Date(d+"T00:00:00").toLocaleDateString(); }catch{ return d; } };
+function weekOrder(){ return Object.keys(state.data.meta.weekDates); }
+function cmpWeek(a,b){ const o=weekOrder(); return o.indexOf(String(a)) - o.indexOf(String(b)); }
+function usedTeamsBeforeWeek(picks, player, week){ const idx=weekOrder().indexOf(String(week))-1; return uniq(picks.filter(p=>p.player===player && weekOrder().indexOf(String(p.week))<=idx).map(p=>p.team)); }
+function usedTeamsUpTo(picks, player, week){ const idx=weekOrder().indexOf(String(week)); return uniq(picks.filter(p=>p.player===player && weekOrder().indexOf(String(p.week))<=idx).map(p=>p.team)); }
+function availableForWeek(picks, player, week){ const prior=usedTeamsBeforeWeek(picks, player, week); const pool=isTG(week)?TG_BF:isXMAS(week)?XMAS:NFL; return pool.filter(t=>!prior.includes(t)); }
+function entryStatus(picks, player, week){ const up=picks.filter(p=>p.player===player && cmpWeek(p.week, week)<=0).sort((a,b)=>cmpWeek(a.week,b.week)); for(const p of up){ if(p.result==="L") return {eliminated:true, reason:`Loss in ${wLabel(p.week)} (${TEAM_NAME[p.team]})`}; if(p.result==="T") return {eliminated:true, reason:`Tie in ${wLabel(p.week)} (ties = loss)`}; } return {eliminated:false, reason:""}; }
+function specialUsage(used){ return {tg:used.filter(t=>TG_BF.includes(t)).length, xm:used.filter(t=>XMAS.includes(t)).length}; }
+
+/* ===== Alerts ===== */
+function thresholdAlerts(){
+  const w = state.data.meta.currentWeek;
+  for(const pl of state.data.players){
+    const used = usedTeamsUpTo(state.data.picks, pl.name, w);
+    const {tg, xm} = specialUsage(used);
+    const key = s => `dn_thr_${pl.name}_${w}_${s}`;
+    if(tg === TG_THRESHOLD-1 && !sessionStorage.getItem(key("tg_about"))){ alert(`Heads up: ${pl.name} is about to pass 40% TG usage (${tg}/${TG_BF.length}).`); sessionStorage.setItem(key("tg_about"),"1"); }
+    if(tg >= TG_THRESHOLD   && !sessionStorage.getItem(key("tg_pass")) ){ alert(`Notice: ${pl.name} is ≥40% on TG usage (${tg}/${TG_BF.length}).`); sessionStorage.setItem(key("tg_pass"),"1"); }
+    if(xm === XMAS_THRESHOLD-1 && !sessionStorage.getItem(key("xm_about"))){ alert(`Heads up: ${pl.name} is about to pass 40% XMAS usage (${xm}/${XMAS.length}).`); sessionStorage.setItem(key("xm_about"),"1"); }
+    if(xm >= XMAS_THRESHOLD    && !sessionStorage.getItem(key("xm_pass")) ){ alert(`Notice: ${pl.name} is ≥40% on XMAS usage (${xm}/${XMAS.length}).`); sessionStorage.setItem(key("xm_pass"),"1"); }
+  }
+}
+
+/* ===== UI Render ===== */
+window.state = window.state || { data: loadData() };
+const state = window.state;
+function cellLogo(code,big=false){ return `<img class="${big?'logo-lg':'logo'}" alt="${TEAM_NAME[code]}" src="${logo(code)}">`; }
+
+function renderHeader(){
+  const w = state.data.meta.currentWeek;
+  document.getElementById("hdr-week").textContent = wLabel(w);
+  document.getElementById("hdr-date").textContent = fmtDate(state.data.meta.weekDates[String(w)]);
+  document.getElementById("year").textContent = new Date().getFullYear();
+  document.getElementById("weekType").textContent = isTG(w)?"Special: Thanksgiving+BF":isXMAS(w)?"Special: Christmas":"Regular Week";
+}
+
+function renderTracker(){
+  const tbody = document.querySelector("#tracker tbody"); tbody.innerHTML = "";
+  const week = state.data.meta.currentWeek;
+  let active = 0;
+
+  for(const pl of state.data.players){
+    const usedList = state.data.picks.filter(p=>p.player===pl.name).sort((a,b)=>cmpWeek(a.week,b.week))
+      .map(p=>`${wLabel(p.week)}: ${cellLogo(p.team)}${TEAM_NAME[p.team]} <span class="muted">(${p.result||"?"})</span>`).join(" · ");
+
+    const status = entryStatus(state.data.picks, pl.name, week);
+    const avail  = availableForWeek(state.data.picks, pl.name, week);
+
+    const usedUp = usedTeamsUpTo(state.data.picks, pl.name, week);
+    const {tg, xm} = specialUsage(usedUp);
+    const flags = [];
+    if(tg === TG_THRESHOLD-1) flags.push(`<span class="chip warn tiny">about to 40% (TG)</span>`);
+    if(tg >= TG_THRESHOLD)    flags.push(`<span class="chip info tiny">≥40% (TG)</span>`);
+    if(xm === XMAS_THRESHOLD-1) flags.push(`<span class="chip warn tiny">about to 40% (XMAS)</span>`);
+    if(xm >= XMAS_THRESHOLD)    flags.push(`<span class="chip info tiny">≥40% (XMAS)</span>`);
+
+    let specialRisk = "";
+    if(isTG(week) && avail.length===0) specialRisk = `<span class="chip bad tiny">No TG team left — auto-elim risk</span>`;
+    if(isXMAS(week) && avail.length===0) specialRisk = `<span class="chip bad tiny">No XMAS team left — auto-elim risk</span>`;
+
+    if(!status.eliminated) active++;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${pl.name}</strong> ${flags.join(" ")} ${specialRisk}</td>
+      <td>${status.eliminated?`<span class="chip bad">ELIMINATED</span> <span class="muted tiny">${status.reason}</span>`:`<span class="chip ok">ACTIVE</span>`}</td>
+      <td class="tiny">${usedList || "<span class='muted'>—</span>"}</td>
+      <td class="tiny">${status.eliminated?"<span class='muted'>—</span>": (avail.length? avail.map(c=>`${cellLogo(c)}${TEAM_NAME[c]}`).join(" · "):"<span class='muted'>—</span>")}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  document.getElementById("activeCount").textContent = `${active} active / ${state.data.players.length}`;
+}
+
+function renderSpecialStatus(){
+  const tbody = document.querySelector("#specialStatus tbody"); tbody.innerHTML = "";
+  const week = state.data.meta.currentWeek;
+
+  for(const pl of state.data.players){
+    const used = usedTeamsUpTo(state.data.picks, pl.name, week);
+    const {tg, xm} = specialUsage(used);
+    const tgAvail = TG_BF.filter(t=>!used.includes(t));
+    const xmAvail = XMAS.filter(t=>!used.includes(t));
+    const tgBadge = tg>=TG_THRESHOLD?`<span class="chip info tiny">≥40%</span>`: tg===(TG_THRESHOLD-1)?`<span class="chip warn tiny">about</span>`:"";
+    const xmBadge = xm>=XMAS_THRESHOLD?`<span class="chip info tiny">≥40%</span>`: xm===(XMAS_THRESHOLD-1)?`<span class="chip warn tiny">about</span>`:"";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${pl.name}</strong></td>
+      <td class="mono">${tg}/${TG_BF.length} ${tgBadge}</td>
+      <td class="tiny">${tgAvail.length? tgAvail.map(c=>`${cellLogo(c)}${TEAM_NAME[c]}`).join(" · "): "<span class='muted'>none</span>"}</td>
+      <td class="mono">${xm}/${XMAS.length} ${xmBadge}</td>
+      <td class="tiny">${xmAvail.length? xmAvail.map(c=>`${cellLogo(c)}${TEAM_NAME[c]}`).join(" · "): "<span class='muted'>none</span>"}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+/* ===== Make Picks Panel ===== */
+function renderPickSelectors(){
+  const weekSel = document.getElementById("pickWeek");
+  const playerSel = document.getElementById("pickPlayer");
+  const teamSel = document.getElementById("pickTeam");
+  weekSel.innerHTML = ""; playerSel.innerHTML = ""; teamSel.innerHTML = "";
+
+  for(const w of weekOrder()){
+    const opt = document.createElement("option"); opt.value = w; opt.textContent = wLabel(w);
+    if(String(w)===String(state.data.meta.currentWeek)) opt.selected = true;
+    weekSel.appendChild(opt);
+  }
+  for(const p of state.data.players){
+    const opt = document.createElement("option"); opt.value = p.name; opt.textContent = p.name;
+    playerSel.appendChild(opt);
+  }
+  const refreshTeams = ()=>{
+    const w = weekSel.value; const name = playerSel.value;
+    const avail = availableForWeek(state.data.picks, name, w);
+    teamSel.innerHTML = "";
+    avail.forEach(c=>{ const opt = document.createElement("option"); opt.value=c; opt.textContent=TEAM_NAME[c]; teamSel.appendChild(opt); });
+    const tiles = document.getElementById("availabilityTiles");
+    tiles.innerHTML = NFL.map(code=>{
+      const used = usedTeamsBeforeWeek(state.data.picks, name, w).includes(code);
+      const inPool = isTG(w)? TG_BF.includes(code) : isXMAS(w)? XMAS.includes(code) : true;
+      return `<div class="tile ${used||!inPool?'used':''}">${cellLogo(code,true)}${TEAM_NAME[code]}</div>`;
+    }).join("");
+  };
+  weekSel.onchange = refreshTeams; playerSel.onchange = refreshTeams; refreshTeams();
+
+  document.getElementById("savePick").onclick = ()=>{
+    const w = isNaN(Number(weekSel.value)) ? weekSel.value : Number(weekSel.value);
+    const name = playerSel.value; const team = teamSel.value;
+    if(!team){ alert("No team available for that entry/week."); return; }
+    if(state.data.picks.find(p=>String(p.week)===String(w) && p.player===name)){ alert("This entry already has a pick for that week."); return; }
+    state.data.picks.push({week:w, player:name, team, result:"P"});
+    saveData(state.data); sessionStorage.clear(); renderAll();
+  };
+}
+
+/* ===== Week controls & init ===== */
+function renderWeekSelects(){
+  const sel = document.getElementById("weekSelect"); sel.innerHTML = "";
+  for(const w of weekOrder()){
+    const opt = document.createElement("option"); opt.value = w; opt.textContent = wLabel(w);
+    if(String(w)===String(state.data.meta.currentWeek)) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.onchange = ()=>{ state.data.meta.currentWeek = isNaN(Number(sel.value))? sel.value : Number(sel.value); saveData(state.data); renderAll(); };
+  document.getElementById("advanceWeek").onclick = ()=>{
+    const order = weekOrder(); const idx = order.indexOf(String(state.data.meta.currentWeek));
+    state.data.meta.currentWeek = order[Math.min(order.length-1, idx+1)]; saveData(state.data); renderAll();
+  };
+}
+
+const state = { data: loadData() };
+function renderAll(){ renderHeader(); renderWeekSelects(); renderTracker(); renderSpecialStatus(); renderPickSelectors(); document.getElementById("dataEditor").value = JSON.stringify(state.data, null, 2); thresholdAlerts(); }
+renderAll();
+</script>
+</body>
+</html>
