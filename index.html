@@ -34,6 +34,24 @@ tr:last-child td{border-bottom:0}
 .kit{display:flex;flex-wrap:wrap;gap:6px}
 .kit .tile{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:4px 8px}
 .kit .used{opacity:.35}
+.special-flag{display:inline-flex;align-items:center;gap:4px;margin-left:4px}
+.special-toggle{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--ink);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1;padding:0;cursor:pointer}
+.special-panel{display:none;margin:6px 0 0;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03);gap:6px;flex-wrap:wrap}
+.special-panel.open{display:flex}
+.special-team{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border:1px solid var(--line);border-radius:999px;font-size:12px}
+.special-team.used{opacity:.35}
+.special-games-wrap{margin-top:12px}
+.special-games-group{margin-bottom:12px}
+.special-games-row{display:flex;flex-wrap:wrap;gap:12px}
+.game-card{flex:1 1 220px;min-width:200px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.game-header{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.game-icon{font-size:20px}
+.game-body{display:flex;flex-direction:column;gap:6px}
+.game-team{display:flex;align-items:center;gap:6px;font-weight:600}
+.game-team.used{opacity:.35}
+.special-focus-note{font-size:11px;color:var(--muted)}
+.game-at{font-size:11px;color:var(--muted);text-align:center;letter-spacing:.6px;text-transform:uppercase}
+#specialStatus tbody tr.focus td{background:rgba(255,255,255,.05)}
 </style>
 </head>
 <body>
@@ -83,6 +101,7 @@ tr:last-child td{border-bottom:0}
           <tbody></tbody>
         </table>
       </div>
+      <div id="specialGameCards" class="special-games-wrap"></div>
     </section>
 
     <!-- RIGHT: Rules + Make Picks -->
@@ -135,6 +154,27 @@ const XMAS  = ["DAL","WAS","DET","MIN","DEN","KC"];            // 6
 const SPECIAL_THRESHOLD = 0.40;
 const TG_THRESHOLD = Math.ceil(TG_BF.length * SPECIAL_THRESHOLD);   // 4
 const XMAS_THRESHOLD = Math.ceil(XMAS.length  * SPECIAL_THRESHOLD); // 3
+const SPECIAL_GAME_GROUPS = [
+  {
+    key:"TG_BF",
+    title:"Thanksgiving & Black Friday Slate",
+    games:[
+      {tag:"TG", date:"Thu • Nov 27", time:"12:30p ET", away:"GB", home:"DET"},
+      {tag:"TG", date:"Thu • Nov 27", time:"4:30p ET", away:"KC", home:"DAL"},
+      {tag:"TG", date:"Thu • Nov 27", time:"8:20p ET", away:"CIN", home:"BAL"},
+      {tag:"BF", date:"Fri • Nov 28", time:"3:00p ET", away:"CHI", home:"PHI"}
+    ]
+  },
+  {
+    key:"XMAS",
+    title:"Christmas Slate",
+    games:[
+      {tag:"XMAS", date:"Thu • Dec 25", time:"1:00p ET", away:"MIN", home:"DET"},
+      {tag:"XMAS", date:"Thu • Dec 25", time:"4:30p ET", away:"WAS", home:"DAL"},
+      {tag:"XMAS", date:"Thu • Dec 25", time:"8:15p ET", away:"DEN", home:"KC"}
+    ]
+  }
+];
 
 /* ===== Seeded Data (W1–W3) ===== */
 /* Results: W=win, L=loss, T=tie, P=pending */
@@ -204,6 +244,8 @@ function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
 
 /* ===== Utils ===== */
 const uniq = a => Array.from(new Set(a));
+const SPECIAL_ICONS = {TG:"🦃", BF:"🛍", XMAS:"🎄"};
+const specialIcon = tag => SPECIAL_ICONS[tag] || "";
 const weekIsSpecial = w => ["TG","XMAS"].includes(String(w));
 const isTG = w => String(w)==="TG"; const isXMAS = w => String(w)==="XMAS";
 const wLabel = w => isTG(w)?"Thanksgiving+BF":(isXMAS(w)?"Christmas":"W"+w);
@@ -233,6 +275,7 @@ function thresholdAlerts(){
 /* ===== UI Render ===== */
 window.state = window.state || { data: loadData() };
 const state = window.state;
+if(!state.specialFocus && state.data.players.length){ state.specialFocus = state.data.players[0].name; }
 function cellLogo(code,big=false){ return `<img class="${big?'logo-lg':'logo'}" alt="${TEAM_NAME[code]}" src="${logo(code)}">`; }
 
 function renderHeader(){
@@ -243,12 +286,61 @@ function renderHeader(){
   document.getElementById("weekType").textContent = isTG(w)?"Special: Thanksgiving+BF":isXMAS(w)?"Special: Christmas":"Regular Week";
 }
 
+function setSpecialFocus(name){
+  if(!name || state.specialFocus === name) return;
+  if(!state.data.players.some(p=>p.name===name)) return;
+  state.specialFocus = name;
+  renderSpecialStatus();
+}
+
+function renderSpecialGames(){
+  const wrap = document.getElementById("specialGameCards");
+  if(!wrap) return;
+  if(!state.data.players.length){ wrap.innerHTML = ""; return; }
+  if(!state.specialFocus || !state.data.players.some(p=>p.name===state.specialFocus)){
+    state.specialFocus = state.data.players[0].name;
+  }
+  const focus = state.specialFocus;
+  const used = new Set(usedTeamsUpTo(state.data.picks, focus, state.data.meta.currentWeek));
+
+  const groups = SPECIAL_GAME_GROUPS.map(group=>{
+    const cards = group.games.map(game=>{
+      const awayUsed = used.has(game.away);
+      const homeUsed = used.has(game.home);
+      return `
+        <div class="game-card">
+          <div class="game-header">
+            <span class="game-icon">${specialIcon(game.tag)}</span>
+            <div>
+              <div>${game.date}</div>
+              <div>${game.time}</div>
+            </div>
+          </div>
+          <div class="game-body">
+            <div class="game-team${awayUsed?" used":""}">${cellLogo(game.away,true)}${TEAM_NAME[game.away]}</div>
+            <div class="game-at">at</div>
+            <div class="game-team${homeUsed?" used":""}">${cellLogo(game.home,true)}${TEAM_NAME[game.home]}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+    return `
+      <div class="special-games-group">
+        <div class="tiny muted" style="text-transform:uppercase;letter-spacing:.5px;">${group.title}</div>
+        <div class="special-games-row">${cards}</div>
+      </div>
+    `;
+  }).join("");
+
+  wrap.innerHTML = `${groups}<div class="special-focus-note">Viewing availability for <strong>${focus}</strong>.</div>`;
+}
+
 function renderTracker(){
   const tbody = document.querySelector("#tracker tbody"); tbody.innerHTML = "";
   const week = state.data.meta.currentWeek;
   let active = 0;
 
-  for(const pl of state.data.players){
+  state.data.players.forEach((pl, idx)=>{
     const usedList = state.data.picks.filter(p=>p.player===pl.name).sort((a,b)=>cmpWeek(a.week,b.week))
       .map(p=>`${wLabel(p.week)}: ${cellLogo(p.team)}${TEAM_NAME[p.team]} <span class="muted">(${p.result||"?"})</span>`).join(" · ");
 
@@ -260,7 +352,20 @@ function renderTracker(){
     const flags = [];
     if(tg === TG_THRESHOLD-1) flags.push(`<span class="chip warn tiny">about to 40% (TG)</span>`);
     if(tg >= TG_THRESHOLD)    flags.push(`<span class="chip info tiny">≥40% (TG)</span>`);
-    if(xm === XMAS_THRESHOLD-1) flags.push(`<span class="chip warn tiny">about to 40% (XMAS)</span>`);
+    if(xm === XMAS_THRESHOLD-1){
+      const panelId = `xmas-panel-${idx}`;
+      const xmasTiles = XMAS.map(code=>{
+        const used = usedUp.includes(code)?" used":"";
+        return `<span class="special-team${used}">${cellLogo(code)}${TEAM_NAME[code]}</span>`;
+      }).join("");
+      flags.push(`
+        <span class="special-flag">
+          <span class="chip warn tiny">about to 40% (XMAS)</span>
+          <button type="button" class="special-toggle" data-target="${panelId}" aria-expanded="false">+</button>
+        </span>
+        <div class="special-panel" id="${panelId}">${xmasTiles}</div>
+      `);
+    }
     if(xm >= XMAS_THRESHOLD)    flags.push(`<span class="chip info tiny">≥40% (XMAS)</span>`);
 
     let specialRisk = "";
@@ -277,13 +382,25 @@ function renderTracker(){
       <td class="tiny">${status.eliminated?"<span class='muted'>—</span>": (avail.length? avail.map(c=>`${cellLogo(c)}${TEAM_NAME[c]}`).join(" · "):"<span class='muted'>—</span>")}</td>
     `;
     tbody.appendChild(tr);
-  }
+    tr.querySelectorAll(".special-toggle").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const panel = tr.querySelector(`#${btn.dataset.target}`);
+        if(!panel) return;
+        const isOpen = panel.classList.toggle("open");
+        btn.textContent = isOpen?"−":"+";
+        btn.setAttribute("aria-expanded", isOpen?"true":"false");
+      });
+    });
+  });
   document.getElementById("activeCount").textContent = `${active} active / ${state.data.players.length}`;
 }
 
 function renderSpecialStatus(){
   const tbody = document.querySelector("#specialStatus tbody"); tbody.innerHTML = "";
   const week = state.data.meta.currentWeek;
+  if(!state.specialFocus || !state.data.players.some(p=>p.name===state.specialFocus)){
+    state.specialFocus = state.data.players[0]?.name || "";
+  }
 
   for(const pl of state.data.players){
     const used = usedTeamsUpTo(state.data.picks, pl.name, week);
@@ -301,8 +418,19 @@ function renderSpecialStatus(){
       <td class="mono">${xm}/${XMAS.length} ${xmBadge}</td>
       <td class="tiny">${xmAvail.length? xmAvail.map(c=>`${cellLogo(c)}${TEAM_NAME[c]}`).join(" · "): "<span class='muted'>none</span>"}</td>
     `;
+    tr.dataset.player = pl.name;
+    tr.tabIndex = 0;
+    if(pl.name === state.specialFocus) tr.classList.add("focus");
     tbody.appendChild(tr);
   }
+
+  tbody.querySelectorAll("tr").forEach(row=>{
+    row.addEventListener("mouseenter",()=>setSpecialFocus(row.dataset.player));
+    row.addEventListener("focusin",()=>setSpecialFocus(row.dataset.player));
+    row.addEventListener("click",()=>setSpecialFocus(row.dataset.player));
+  });
+
+  renderSpecialGames();
 }
 
 /* ===== Make Picks Panel ===== */
