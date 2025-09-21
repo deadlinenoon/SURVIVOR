@@ -1,19 +1,12 @@
 {
   "name": "survivor-site",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "scripts": {
     "clean": "rimraf dist .cache || true",
-    "build:prod": "NODE_ENV=production vite build || NODE_ENV=production webpack --mode production",
-    "preview": "npx serve -s dist -l 4173",
-    "release:vercel": "vercel --prod --yes",
-    "release:netlify": "netlify deploy --dir=dist --prod",
-    "release:cf": "wrangler pages deploy dist",
-    "release:s3": "aws s3 sync dist s3://$S3_BUCKET --delete && aws cloudfront create-invalidation --distribution-id $CF_DISTRIBUTION --paths '/*'",
-    "release:ghp": "gh-pages -d dist"
+    "build:prod": "rm -rf dist && mkdir -p dist && rsync -a --exclude 'dist' --exclude '.git' --exclude 'node_modules' . dist/"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5",
-    "gh-pages": "^6.1.1"
+    "rimraf": "^5.0.5"
   }
 }
