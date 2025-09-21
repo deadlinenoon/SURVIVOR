@@ -8,6 +8,24 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 .wrap{max-width:1300px;margin:0 auto;padding:24px}
 header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.home-logo{display:flex;align-items:center;gap:16px;text-decoration:none;color:inherit}
+.home-logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:18px}
+.brand-stack{display:flex;flex-direction:column;gap:4px}
+.logo-video{display:block;width:72px;height:72px;border-radius:16px;object-fit:cover;flex-shrink:0;box-shadow:0 10px 25px rgba(0,0,0,.35);background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.15), transparent 55%), rgba(255,255,255,.04)}
+.logo-video::-webkit-media-controls{display:none !important}
+.implied-banner{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;margin:0 0 16px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03);font:600 14px/1.2 system-ui;letter-spacing:.2px;color:var(--muted)}
+.result-symbol{display:inline-block;margin-left:6px;font-weight:600}
+.result-symbol.result-win{color:var(--good)}
+.result-symbol.result-loss{color:var(--bad)}
+.result-symbol.result-pending{color:var(--muted)}
+.team-name{margin-left:6px;font-weight:600}
+.team-name.strike{text-decoration:line-through;color:var(--muted)}
+.chi-card{margin-top:16px;border:1px dashed var(--line);border-radius:12px;padding:12px;background:rgba(255,255,255,.03)}
+.chi-grid{display:flex;flex-wrap:wrap;gap:12px}
+.chi-grid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.chi-grid input,.chi-grid select{min-width:140px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--ink);padding:6px 8px;border-radius:8px;font:inherit}
+.chi-note{margin-top:8px;font-size:12px;color:var(--muted)}
+#hedgeGrid{margin-top:12px}
 .brand{font-weight:800;font-size:28px}.accent{color:var(--accent)}
 .badge{border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
 .grid{display:grid;gap:16px}@media(min-width:1200px){.grid{grid-template-columns:2fr 1fr}}
@@ -59,6 +77,8 @@ tr:last-child td{border-bottom:0}
 .net-badge{display:inline-flex;align-items:center;gap:4px;font:600 11px system-ui;padding:2px 6px;border-radius:999px;background:#f2f4f7;border:1px solid #d0d5dd;color:#111827}
 .net-badge.thanksgiving{background:#fff4e6;border-color:#ffd7a3;color:#8b5e34}
 .net-badge.tnf{background:#eef2ff;border-color:#c7d2fe;color:#3730a3}
+.net-badge.black-friday{background:#111827;color:#f9fafb;border-color:#111827}
+.net-badge.christmas{background:#e0f2f1;border-color:#99f6e4;color:#0f766e}
 /* Hedge tab */
 .hedge-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .box{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(255,255,255,.03)}
@@ -135,16 +155,24 @@ tr:last-child td{border-bottom:0}
 .callout{border-left:3px solid var(--accent);padding-left:10px;margin-top:8px}
 </style>
 </head>
-<body>
+<body id="top">
 <div class="wrap">
   <header>
-    <div>
-      <div class="badge">Week <span id="hdr-week"></span> • <span id="hdr-date"></span></div>
-      <div class="brand">Deadline<span class="accent">Noon</span> — Survivor</div>
-      <div class="sub">9 contestants • ties = loss • special weeks • 40% special-usage alerts • real logos</div>
-    </div>
+    <a class="home-logo" href="#top" aria-label="DeadlineNoon home">
+      <video class="logo-video" src="logo.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
+        <source src="logo.mp4" type="video/mp4"/>
+        DeadlineNoon
+      </video>
+      <div class="brand-stack">
+        <div class="badge">Week <span id="hdr-week"></span> • <span id="hdr-date"></span></div>
+        <div class="brand">Deadline<span class="accent">Noon</span> — Survivor</div>
+        <div class="sub">9 contestants • <span id="activeHeadline">9 active</span> • ties = loss • special weeks • 40% special-usage alerts • real logos</div>
+      </div>
+    </a>
     <div class="badge mono" id="env-badge"></div>
   </header>
+
+  <div class="implied-banner" id="impliedBanner"></div>
 
   <!-- Tabs -->
   <div class="tabs">
@@ -340,6 +368,51 @@ tr:last-child td{border-bottom:0}
         </div>
       </div>
     </div>
+
+    <div class="chi-card">
+      <div class="label">Chicago Specials</div>
+      <div class="tiny muted">Pick your South Side flavor — snark up top, formulas behind the curtain.</div>
+      <div class="chi-grid" style="margin-top:8px">
+        <label>Mode
+          <select id="hedgeMode">
+            <option value="CHIRAQI">Chiraqi Dome — “Full body armor when you ain’t trusting nobody.” (Full ML hedge)</option>
+            <option value="SOLDIER">Soldier Cover — “Playin’ defense at Soldier — bend don’t break.” (Even ML + spread split)</option>
+            <option value="OBLOCK">O-Block Lock — “Protection from those corner boys when they lookin’ to rip and run.” (ML-heavy 75/25 split)</option>
+            <option value="CCC">Capone Cover Collector — “Profit dirty — skim 50% when the dog just covers. Only blow your cover when the favorite steamrolls.” (Spread-heavy 75/25 split)</option>
+          </select>
+        </label>
+        <label>Opponent ML (American)
+          <input id="oppML" type="number" step="1" value="-120" />
+        </label>
+        <label>Spread price (American)
+          <input id="spreadPrice" type="number" step="1" value="-110" />
+        </label>
+        <label>Entry fee ($)
+          <input id="entryFee" type="number" min="0" step="1" value="1300" />
+        </label>
+        <label>Recouped so far ($)
+          <input id="recoupedSoFar" type="number" min="0" step="1" value="0" />
+        </label>
+      </div>
+      <div class="chi-note" id="hedgeModeNote"></div>
+      <div id="hedgeGrid"></div>
+    </div>
+
+    <div class="chi-card">
+      <div class="label">Industry Standards</div>
+      <div class="tiny muted">The classics everyone talks about in forums.</div>
+      <div class="chi-grid" style="margin-top:8px">
+        <label>Mode
+          <select id="hedgeIndustryMode">
+            <option value="ENTRYFEE">Entry Fee Recovery — (Hedge just enough so if you bust, you get your buy-in back)</option>
+            <option value="FLAT">Flat Target — (Always hedge to the same fixed KO payout)</option>
+            <option value="KELLY">Kelly Criterion — (Mathematical stake sizing by edge & odds)</option>
+          </select>
+        </label>
+      </div>
+      <div class="chi-note" id="hedgeIndustryNote"></div>
+      <div id="hedgeIndustryGrid"></div>
+    </div>
   </section>
 
   </div><!-- /tab-hedge -->
@@ -355,14 +428,23 @@ const NFL = Object.keys(TEAM_NAME);
 const logo = c => `https://a.espncdn.com/i/teamlogos/nfl/500/${ESPN[c]}.png`;
 
 /* ===== Broadcast Metadata ===== */
+const networkBadgeDataUri = (label, { bg = '#111827', color = '#ffffff', radius = 6 } = {}) => {
+  const w = 28;
+  const h = 20;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>`
+    + `<rect width='${w}' height='${h}' rx='${radius}' fill='${bg}'/>`
+    + `<text x='50%' y='58%' fill='${color}' font-family='"Inter", "Segoe UI", sans-serif' font-size='10' font-weight='700' text-anchor='middle' dominant-baseline='middle'>${label}</text>`
+    + '</svg>';
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+};
 const NETWORK_LOGO = {
-  ABC:'/networks/abc.svg',
-  CBS:'/networks/cbs.svg',
-  FOX:'/networks/fox.svg',
-  NBC:'/networks/nbc.svg',
-  ESPN:'/networks/espn.svg',
-  NFLN:'/networks/nfln.svg',
-  PRIME:'/networks/prime.svg'
+  ABC: networkBadgeDataUri('ABC', { bg: '#111111' }),
+  CBS: networkBadgeDataUri('CBS', { bg: '#0c1a3c' }),
+  FOX: networkBadgeDataUri('FOX', { bg: '#0b2240' }),
+  NBC: networkBadgeDataUri('NBC', { bg: '#111827' }),
+  ESPN: networkBadgeDataUri('ESPN', { bg: '#b91c1c' }),
+  NFLN: networkBadgeDataUri('NFLN', { bg: '#1d4ed8' }),
+  PRIME: networkBadgeDataUri('PRIME', { bg: '#0a192f' })
 };
 
 function resolveNetwork(gameObj){
@@ -406,11 +488,38 @@ function isThanksgivingEve(date){
   return isThanksgiving(prev);
 }
 
+function isEveningKick(gameObj){
+  if(!gameObj) return false;
+  const timeStr = String(gameObj.time || '').toLowerCase();
+  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*p/);
+  if(match){
+    const hour = Number(match[1]) % 12;
+    return hour >= 6;
+  }
+  if(gameObj.kickoff){
+    const dt = new Date(gameObj.kickoff);
+    if(Number.isFinite(dt.getTime())){
+      const hour = dt.getUTCHours();
+      return hour < 3;
+    }
+  }
+  return false;
+}
+
 function resolveHolidayBadge(gameObj){
+  const tag = String(gameObj?.tag || '').toUpperCase();
+  if(tag === 'BF') return {kind:'black-friday', text:'Black Friday'};
+  if(tag === 'XMAS') return {kind:'christmas', text:'Christmas'};
+  if(tag === 'TG'){
+    const evening = isEveningKick(gameObj);
+    return evening
+      ? {kind:'thanksgiving-night', text:'Thanksgiving Night'}
+      : {kind:'thanksgiving', text:'Thanksgiving'};
+  }
   if(!gameObj?.kickoff) return null;
   const dt = new Date(gameObj.kickoff);
   if(isThanksgiving(dt)) return {kind:'thanksgiving', text:'Thanksgiving'};
-  if(isThanksgivingEve(dt)) return {kind:'tnf', text:'Thanksgiving Eve'};
+  if(isThanksgivingEve(dt)) return {kind:'thanksgiving-night', text:'Thanksgiving Night'};
   if(dt.getUTCDay() === 4) return {kind:'tnf', text:'TNF'};
   const slot = gameObj?.slot ? String(gameObj.slot).toUpperCase() : "";
   if(slot === 'TNF') return {kind:'tnf', text:'TNF'};
@@ -428,7 +537,13 @@ function networkMetaHtml(gameObj){
   let badgeHtml = '';
   if(badge){
     if(badge.kind === 'thanksgiving'){
-      badgeHtml = `<span class="net-badge thanksgiving"><img class="net-logo" alt="Turkey" src="/networks/thanksgiving.svg" style="width:14px;height:14px;"> ${badge.text}</span>`;
+      badgeHtml = `<span class="net-badge thanksgiving"><span aria-hidden="true">🦃</span> ${badge.text}</span>`;
+    }else if(badge.kind === 'thanksgiving-night'){
+      badgeHtml = `<span class="net-badge thanksgiving" title="${badge.text}" aria-label="${badge.text}"><span aria-hidden="true">🦃 PM</span></span>`;
+    }else if(badge.kind === 'christmas'){
+      badgeHtml = `<span class="net-badge christmas"><span aria-hidden="true">🎄</span> ${badge.text}</span>`;
+    }else if(badge.kind === 'black-friday'){
+      badgeHtml = `<span class="net-badge black-friday"><span aria-hidden="true">🛍</span> ${badge.text}</span>`;
     }else{
       badgeHtml = `<span class="net-badge tnf">${badge.text}</span>`;
     }
@@ -494,6 +609,9 @@ const XMAS_MATCHUP_TAG = {
   KC:"DEN@KC"
 };
 
+const ENTRANTS = 18718;
+const TOTAL_POT = 18700000;
+
 /* ===== Seeded Data (W1–W3) ===== */
 /* Results: W=win, L=loss, T=tie, P=pending */
 const STARTER = {
@@ -543,7 +661,7 @@ const STARTER = {
     {week:2, player:"Creamsicle Cabana",    team:"DAL", result:"P"},
 
     // Week 3 (BUF = WIN Thu)
-    {week:3, player:"SlyBiz",               team:"GB",  result:"P"},
+    {week:3, player:"SlyBiz",               team:"GB",  result:"L"},
     {week:3, player:"Cremaster Reflex 1",   team:"SEA", result:"P"},
     {week:3, player:"Cremaster Reflex 2",   team:"TB",  result:"P"},
     {week:3, player:"BulletProof Tiger 1",  team:"KC",  result:"P"},
@@ -562,6 +680,37 @@ function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
 
 /* ===== Utils ===== */
 const uniq = a => Array.from(new Set(a));
+
+function resultInfo(result){
+  const value = String(result || '').toUpperCase();
+  if(value === 'W') return { symbol:'✓', class:'win', label:'Win' };
+  if(value === 'L' || value === 'T') return { symbol:'✗', class:'loss', label: value==='T' ? 'Tie = Loss' : 'Loss' };
+  return { symbol:'•', class:'pending', label:'Pending' };
+}
+
+function teamNameHtml(team, resultClass){
+  const name = TEAM_NAME[team] || team;
+  const cls = resultClass === 'loss' ? 'team-name strike' : 'team-name';
+  return `<span class="${cls}">${name}</span>`;
+}
+
+function resultSymbolHtml(result){
+  const info = resultInfo(result);
+  const cls = `result-symbol result-${info.class}`;
+  return `<span class="${cls}" title="${info.label}">${info.symbol}</span>`;
+}
+
+function resultChipHtml(result){
+  const info = resultInfo(result);
+  if(info.class === 'pending') return `<span class="chip tiny">Pending</span>`;
+  const chipClass = info.class === 'win' ? 'chip ok tiny' : 'chip bad tiny';
+  return `<span class="${chipClass}">${info.symbol} ${info.label}</span>`;
+}
+
+function resultDetailLabel(result){
+  const info = resultInfo(result);
+  return info.class === 'pending' ? info.label : `${info.symbol} ${info.label}`;
+}
 const SPECIAL_ICONS = {TG:"🦃", BF:"🛍", XMAS:"🎄"};
 const specialIcon = tag => SPECIAL_ICONS[tag] || "";
 const weekIsSpecial = w => ["TG","XMAS"].includes(String(w));
@@ -679,16 +828,17 @@ function setWeekSafely(wk){
 }
 
 /* ===== Alerts ===== */
+const notifyThreshold = () => {};
 function thresholdAlerts(){
   const w = state.data.meta.currentWeek;
   for(const pl of state.data.players){
     const used = usedTeamsUpTo(state.data.picks, pl.name, w);
     const {tg, xm} = specialUsage(used);
     const key = s => `dn_thr_${pl.name}_${w}_${s}`;
-    if(tg === TG_THRESHOLD-1 && !sessionStorage.getItem(key("tg_about"))){ alert(`Heads up: ${pl.name} is about to pass 40% TG usage (${tg}/${TG_BF.length}).`); sessionStorage.setItem(key("tg_about"),"1"); }
-    if(tg >= TG_THRESHOLD   && !sessionStorage.getItem(key("tg_pass")) ){ alert(`Notice: ${pl.name} is ≥40% on TG usage (${tg}/${TG_BF.length}).`); sessionStorage.setItem(key("tg_pass"),"1"); }
-    if(xm === XMAS_THRESHOLD-1 && !sessionStorage.getItem(key("xm_about"))){ alert(`Heads up: ${pl.name} is about to pass 40% XMAS usage (${xm}/${XMAS.length}).`); sessionStorage.setItem(key("xm_about"),"1"); }
-    if(xm >= XMAS_THRESHOLD    && !sessionStorage.getItem(key("xm_pass")) ){ alert(`Notice: ${pl.name} is ≥40% on XMAS usage (${xm}/${XMAS.length}).`); sessionStorage.setItem(key("xm_pass"),"1"); }
+    if(tg === TG_THRESHOLD-1 && !sessionStorage.getItem(key("tg_about"))){ notifyThreshold(`Heads up: ${pl.name} is about to pass 40% TG usage (${tg}/${TG_BF.length}).`); sessionStorage.setItem(key("tg_about"),"1"); }
+    if(tg >= TG_THRESHOLD   && !sessionStorage.getItem(key("tg_pass")) ){ notifyThreshold(`Notice: ${pl.name} is ≥40% on TG usage (${tg}/${TG_BF.length}).`); sessionStorage.setItem(key("tg_pass"),"1"); }
+    if(xm === XMAS_THRESHOLD-1 && !sessionStorage.getItem(key("xm_about"))){ notifyThreshold(`Heads up: ${pl.name} is about to pass 40% XMAS usage (${xm}/${XMAS.length}).`); sessionStorage.setItem(key("xm_about"),"1"); }
+    if(xm >= XMAS_THRESHOLD    && !sessionStorage.getItem(key("xm_pass")) ){ notifyThreshold(`Notice: ${pl.name} is ≥40% on XMAS usage (${xm}/${XMAS.length}).`); sessionStorage.setItem(key("xm_pass"),"1"); }
   }
 }
 
@@ -832,12 +982,15 @@ function renderHeader(){
   const badgeEl = document.getElementById("env-badge");
   if(badgeEl){
     const host = location.hostname;
-    if(host==="localhost" || host.startsWith("127.")){
-      badgeEl.style.display = "inline-flex";
-      badgeEl.textContent = "localhost preview";
-    }else{
-      badgeEl.style.display = "none";
-    }
+    const isLocal = host==="localhost" || host.startsWith("127.");
+    badgeEl.style.display = "inline-flex";
+    badgeEl.textContent = isLocal ? "localhost preview" : "DONE ✅";
+  }
+  const impliedBanner = document.getElementById("impliedBanner");
+  if(impliedBanner){
+    const entrantsText = ENTRANTS.toLocaleString();
+    const potText = TOTAL_POT.toLocaleString('en-US', { style:'currency', currency:'USD', maximumFractionDigits:0, minimumFractionDigits:0 });
+    impliedBanner.textContent = `▌ ${entrantsText} entrants totalling ${potText}`;
   }
 }
 
@@ -940,7 +1093,11 @@ function renderTracker(){
 
   state.data.players.forEach(pl=>{
     const picksForPlayer = state.data.picks.filter(p=>p.player===pl.name).sort((a,b)=>cmpWeek(a.week,b.week));
-    const usedList = picksForPlayer.map(p=>({w:p.week,t:p.team,r:p.result||"?"}));
+    const usedList = picksForPlayer.map(p=>({
+      w: p.week,
+      t: p.team,
+      r: String(p.result || 'P').toUpperCase()
+    }));
 
     const status = entryStatus(state.data.picks, pl.name, week);
     const avail  = availableForWeek(state.data.picks, pl.name, week);
@@ -960,7 +1117,14 @@ function renderTracker(){
     if(!status.eliminated) active++;
 
     const mini = usedList.length
-      ? usedList.map(p=>`<span class="u-chip"><span class="wk">${wLabel(p.w)}</span>${cellLogo(p.t)}${TEAM_NAME[p.t]} <span class="muted">(${p.r})</span></span>`).join("")
+      ? usedList.map(p=>{
+          const info = resultInfo(p.r);
+          const teamLabel = teamNameHtml(p.t, info.class);
+          const tail = info.class==='pending'
+            ? `<span class="muted tiny">(${info.label})</span>`
+            : resultSymbolHtml(p.r);
+          return `<span class="u-chip"><span class="wk">${wLabel(p.w)}</span>${cellLogo(p.t)} ${teamLabel} ${tail}</span>`;
+        }).join("")
       : "<span class='muted'>—</span>";
 
     const availChips = status.eliminated
@@ -968,7 +1132,12 @@ function renderTracker(){
       : (avail.length? avail.map(c=>`<span class="chip">${cellLogo(c)}${TEAM_NAME[c]}</span>`).join("") : "<span class='muted tiny'>—</span>");
 
     const usedDetail = usedList.length
-      ? usedList.map(p=>`<span class="chip dim">${cellLogo(p.t)}${TEAM_NAME[p.t]} <span class="muted">(${wLabel(p.w)} • ${p.r})</span></span>`).join("")
+      ? usedList.map(p=>{
+          const info = resultInfo(p.r);
+          const teamLabel = teamNameHtml(p.t, info.class);
+          const detail = `${wLabel(p.w)} • ${resultDetailLabel(p.r)}`;
+          return `<span class="chip dim">${cellLogo(p.t)} ${teamLabel} <span class="muted">(${detail})</span></span>`;
+        }).join("")
       : "<span class='muted tiny'>—</span>";
 
     const tr = document.createElement("tr");
@@ -1006,6 +1175,8 @@ function renderTracker(){
   });
 
   document.getElementById("activeCount").textContent = `${active} active / ${state.data.players.length}`;
+  const activeHeadline = document.getElementById("activeHeadline");
+  if(activeHeadline) activeHeadline.textContent = `${active} active`;
 
   tbody.querySelectorAll(".toggle-btn").forEach(btn=>{
     btn.addEventListener("click",()=>{
@@ -1044,7 +1215,13 @@ function renderSpecialStatus(){
     ? codes.map(c=>mkAvailChip(c, map)).join("")
     : `<span class="muted tiny">none</span>`;
   const mkUsedList = (picks)=> picks.length
-    ? picks.map(p=>`<span class="chip logo-chip dim">${cellLogo(p.team)}${TEAM_NAME[p.team]} <span class="muted">(${wLabel(p.week)} • ${p.result || 'P'})</span></span>`).join("")
+    ? picks.map(p=>{
+        const res = String(p.result || 'P').toUpperCase();
+        const info = resultInfo(res);
+        const teamLabel = teamNameHtml(p.team, info.class);
+        const detail = `${wLabel(p.week)} • ${resultDetailLabel(res)}`;
+        return `<span class="chip logo-chip dim">${cellLogo(p.team)} ${teamLabel} <span class="muted">(${detail})</span></span>`;
+      }).join("")
     : `<span class="muted tiny">none</span>`;
 
   for(const pl of state.data.players){
@@ -1179,11 +1356,11 @@ function renderHedgeSelectors(){
 
 function prettyPickRow(p){
   if(!p) return `<span class="muted">No pick for this week.</span>`;
-  const badge = p.result==="W" ? `<span class="chip ok tiny">WIN</span>` :
-                p.result==="L" ? `<span class="chip bad tiny">LOSS</span>` :
-                p.result==="T" ? `<span class="chip bad tiny">TIE=LOSS</span>` :
-                                   `<span class="chip tiny">PENDING</span>`;
-  return `<div>${wLabel(p.week)} — ${cellLogo(p.team)}${TEAM_NAME[p.team]} ${badge}</div>`;
+  const res = String(p.result || 'P').toUpperCase();
+  const info = resultInfo(res);
+  const badge = resultChipHtml(res);
+  const teamLabel = teamNameHtml(p.team, info.class);
+  return `<div>${wLabel(p.week)} — ${cellLogo(p.team)} ${teamLabel} ${badge}</div>`;
 }
 
 function renderHedge(){
@@ -1263,17 +1440,21 @@ function renderHedge(){
   if(current){
     if(String(week)==="3"){
       const status = FIELD_RESULTS_W3[current.team];
+      const statusClass = status==='L' ? 'loss' : status==='W' ? 'win' : 'pending';
+      const decoratedTeam = teamNameHtml(current.team, statusClass);
       const cnt = (FIELD_W3 && FIELD_W3[current.team])||0;
       const activeTotal = Object.entries(FIELD_W3).reduce((sum,[team,count])=>{
-        if(team==="NOPICK" || FIELD_RESULTS_W3[team]==='W') return sum;
+        if(team==="NOPICK" || FIELD_RESULTS_W3[team]==='W' || FIELD_RESULTS_W3[team]==='L') return sum;
         return sum + count;
       },0) || 1;
       const fieldMsg = status==='W'
-        ? `${TEAM_NAME[current.team] || current.team} ✓ already won`
-        : (()=>{
-            const fieldPct = Math.round((cnt/activeTotal)*1000)/10;
-            return `${TEAM_NAME[current.team] || current.team} field: ${fieldPct}%`;
-          })();
+        ? `${decoratedTeam} ${resultSymbolHtml('W')} already won`
+        : (status==='L'
+          ? `${decoratedTeam} ${resultSymbolHtml('L')} already lost`
+          : (()=>{
+              const fieldPct = Math.round((cnt/activeTotal)*1000)/10;
+              return `${decoratedTeam} field: ${fieldPct}%`;
+            })());
       if(opponentInfo){
         const mlPart = displayML!==null ? ` ${fmtML(displayML)}` : "";
         badgeHTML = `${oppLogoSmall}${oppName}${mlPart} • ${fieldMsg}`;
@@ -1432,6 +1613,38 @@ const HEDGE_DOM = {
   outGrid: 'hedgeGrid'
 };
 
+const HEDGE_MODE_INFO = {
+  CHIRAQI: { label: 'Chiraqi Dome', blurb: 'Pure ML hedge — stake all on opponent moneyline.' },
+  SOLDIER: { label: 'Soldier Cover', blurb: 'Split stake ML + spread to wash on covers.' },
+  OBLOCK: { label: 'O-Block Lock', blurb: 'ML-heavy 75/25 split — steady protection.' },
+  CCC: { label: 'Capone Cover Collector', blurb: 'Spread-heavy 75/25 split — profit if dog covers.' }
+};
+
+const HEDGE_INDUSTRY_INFO = {
+  ENTRYFEE: { label: 'Entry Fee Recovery', blurb: 'Size hedge so if you lose, you get your buy-in back.' },
+  FLAT: { label: 'Flat Target', blurb: 'Always aim for the same fixed payout on a KO.' },
+  KELLY: { label: 'Kelly Criterion', blurb: 'Stake fraction based on odds and your edge probability.' }
+};
+
+function updateHedgeModeNote(mode){
+  const note = document.getElementById('hedgeModeNote');
+  if(!note) return;
+  const key = (mode || 'CHIRAQI').toUpperCase();
+  const meta = HEDGE_MODE_INFO[key] || HEDGE_MODE_INFO.CHIRAQI;
+  note.innerHTML = `<strong>${meta.label}</strong> — ${meta.blurb}`;
+}
+
+function updateIndustryNote(mode){
+  const note = document.getElementById('hedgeIndustryNote');
+  if(!note) return;
+  const key = (mode || 'ENTRYFEE').toUpperCase();
+  const meta = HEDGE_INDUSTRY_INFO[key] || HEDGE_INDUSTRY_INFO.ENTRYFEE;
+  note.innerHTML = `<strong>${meta.label}</strong> — ${meta.blurb}`;
+}
+
+document.getElementById('hedgeMode')?.addEventListener('change', e => updateHedgeModeNote(e.target.value));
+document.getElementById('hedgeIndustryMode')?.addEventListener('change', e => updateIndustryNote(e.target.value));
+
 const HEDGE_EMPTY = () => ({
   stakeML: 0,
   stakeSP: 0,
@@ -1561,6 +1774,7 @@ function runHedgeCalcStandalone(){
   const weekRaw = document.getElementById(HEDGE_DOM.weekSel)?.value;
   const week = Number(weekRaw);
   const mode = (document.getElementById(HEDGE_DOM.modeSel)?.value || 'CHIRAQI').toUpperCase();
+  updateHedgeModeNote(mode);
   const oppML = Number(document.getElementById(HEDGE_DOM.oppMlInput)?.value || 0);
   const spreadPrice = Number(document.getElementById(HEDGE_DOM.spInput)?.value || -110);
   const entryFee = Number(document.getElementById(HEDGE_DOM.entryInput)?.value || 1300);
@@ -1606,6 +1820,7 @@ function initStandaloneHedgeCalc(){
       });
     }
   });
+  updateIndustryNote(document.getElementById('hedgeIndustryMode')?.value);
   runHedgeCalcStandalone();
   window.runHedgeCalcStandalone = runHedgeCalcStandalone;
 }
@@ -1692,13 +1907,15 @@ const FIELD_W3 = {
   SF:67, LAC:52, HOU:49, DAL:43, BAL:30, PIT:20, CHI:13, NE:11, JAX:9, LV:4,
   CAR:3, TEN:2, LAR:2, NO:2, MIA:1, ARI:1, NOPICK:13
 };
-const FIELD_RESULTS_W3 = { BUF: "W" };
+const FIELD_RESULTS_W3 = { BUF: "W", GB: "L", ATL: "L" };
 const FIELD_W3_TOTAL = Object.values(FIELD_W3).reduce((sum,val)=>sum+val,0);
 
 function groupWeekExposure(week){
   const exp = {};
   for(const pick of state.data.picks){
     if(String(pick.week)!==String(week)) continue;
+    const res = String(pick.result || 'P').toUpperCase();
+    if(res === 'W' || res === 'L' || res === 'T') continue;
     exp[pick.team] = (exp[pick.team]||0)+1;
   }
   return exp;
@@ -1708,7 +1925,7 @@ function leverageList(week, fieldOverride=null, statusOverride={}){
   const field = fieldOverride || (week===3 ? FIELD_W3 : null);
   if(!field) return [];
   const status = statusOverride || {};
-  const entries = Object.entries(field).filter(([team,count])=> team!=="NOPICK" && status[team] !== "W" && count>0);
+  const entries = Object.entries(field).filter(([team,count])=> team!=="NOPICK" && status[team] !== "W" && status[team] !== "L" && count>0);
   const totalField = entries.reduce((sum,[,count])=>sum+count,0) || 1;
   const group = groupWeekExposure(week);
   const rows = [];
@@ -1741,23 +1958,20 @@ function renderRooting(){
   const rawField = w===3 ? FIELD_W3 : null;
   const fieldStatus = w===3 ? FIELD_RESULTS_W3 : {};
   const field = rawField ? {...rawField} : null;
-  if(field){
-    Object.entries(fieldStatus).forEach(([team,res])=>{ if(res==='W') field[team] = 0; });
-  }
   const groupExp = groupWeekExposure(w);
   const groupSize = state.data.players.length || 0;
 
   let chalkTeam = null;
   if(field){
     for(const [team,count] of Object.entries(field)){
-      if(team === "NOPICK" || fieldStatus[team]==='W' || count<=0) continue;
+      if(team === "NOPICK" || fieldStatus[team]==='W' || fieldStatus[team]==='L' || count<=0) continue;
       if(chalkTeam===null || count > field[chalkTeam]) chalkTeam = team;
     }
   }
 
   const chalkGroupCount = chalkTeam ? (groupExp[chalkTeam]||0) : 0;
   const activeTotal = field ? Object.entries(field).reduce((sum,[team,count])=>{
-    if(team==="NOPICK" || fieldStatus[team]==='W') return sum;
+    if(team==="NOPICK" || fieldStatus[team]==='W' || fieldStatus[team]==='L') return sum;
     return sum + count;
   },0) || 1 : 1;
   const chalkFieldPct = chalkTeam && field ? field[chalkTeam] / activeTotal : 0;
@@ -1799,6 +2013,7 @@ function renderRooting(){
       let maxEntryTeam = null;
       let maxEntryCount = -1;
       for(const [team,count] of Object.entries(groupExp)){
+        if(fieldStatus[team]==='W' || fieldStatus[team]==='L') continue;
         if(count > maxEntryCount){
           maxEntryCount = count;
           maxEntryTeam = team;
@@ -1812,7 +2027,7 @@ function renderRooting(){
       let bestFadePct = -1;
       if(field){
         for(const [team,count] of Object.entries(field)){
-          if(team === "NOPICK" || fieldStatus[team]==='W') continue;
+          if(team === "NOPICK" || fieldStatus[team]==='W' || fieldStatus[team]==='L') continue;
           if((groupExp[team]||0)===0){
             const pct = count / activeTotal;
             if(pct > bestFadePct){
@@ -1826,9 +2041,26 @@ function renderRooting(){
         lines.push(`IF <strong>${TEAM_NAME[bestFadeTeam]}</strong> <span class="badge-bad">lose</span> THEN max leverage for us (0 group risk; field -${(bestFadePct*100).toFixed(0)}%).`);
       }
       const playedWins = Object.entries(fieldStatus).filter(([,res])=>res==='W');
-      const decidedEntries = Array.from(new Set(state.data.picks.filter(p=>String(p.week)==='3' && fieldStatus[p.team]==='W').map(p=>p.player)));
-      const decidedNote = playedWins.length
-        ? `<div class="tiny muted">Already decided: ${playedWins.map(([team])=>`${TEAM_NAME[team]} ✓`).join(", ")} ${decidedEntries.length?`(secured for ${decidedEntries.join(", ")})`:""}. Impact removed from leverage.</div>`
+      const playedLosses = Object.entries(fieldStatus).filter(([,res])=>res==='L');
+      const decidedWinsEntries = Array.from(new Set(state.data.picks
+        .filter(p=>String(p.week)==='3' && fieldStatus[p.team]==='W')
+        .map(p=>p.player)));
+      const decidedLossEntries = Array.from(new Set(state.data.picks
+        .filter(p=>String(p.week)==='3' && fieldStatus[p.team]==='L')
+        .map(p=>p.player)));
+      const decidedBits = [];
+      if(playedWins.length){
+        const teams = playedWins.map(([team])=>`${teamNameHtml(team,'win')} ${resultSymbolHtml('W')}`).join(", ");
+        const note = decidedWinsEntries.length ? ` (secured for ${decidedWinsEntries.join(", ")})` : "";
+        decidedBits.push(`${teams}${note}`);
+      }
+      if(playedLosses.length){
+        const teams = playedLosses.map(([team])=>`${teamNameHtml(team,'loss')} ${resultSymbolHtml('L')}`).join(", ");
+        const note = decidedLossEntries.length ? ` (out: ${decidedLossEntries.join(", ")})` : "";
+        decidedBits.push(`${teams}${note}`);
+      }
+      const decidedNote = decidedBits.length
+        ? `<div class="tiny muted">Already decided: ${decidedBits.join(" • ")}. Impact removed from leverage.</div>`
         : "";
       panel.innerHTML = (lines.length? lines.map(line=>`<div class="tiny">${line}</div>`).join("") : `<span class="muted tiny">No leverage scenarios available.</span>`) + decidedNote;
     }
