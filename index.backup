@@ -360,6 +360,7 @@ function renderWeekSelects(){
   };
 }
 
+const state = { data: loadData() };
 function renderAll(){ renderHeader(); renderWeekSelects(); renderTracker(); renderSpecialStatus(); renderPickSelectors(); document.getElementById("dataEditor").value = JSON.stringify(state.data, null, 2); thresholdAlerts(); }
 renderAll();
 </script>
