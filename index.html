@@ -34,7 +34,7 @@ tr:last-child td{border-bottom:0}
 .used-mini{display:flex;flex-wrap:wrap;gap:6px}
 .u-chip{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03)}
 .u-chip .wk{font-size:11px;color:var(--muted)}
-.toggle-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:4px 10px;background:rgba(255,255,255,.04);color:var(--ink);cursor:pointer}
+.toggle-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:4px 10px;background:rgba(255,255,255,.04);color:var(--ink);cursor:pointer;font-size:12px}
 .toggle-btn .chev{transition:transform .18s ease}
 .toggle-btn[aria-expanded="true"] .chev{transform:rotate(90deg)}
 .trk-panel{overflow:hidden;max-height:0;opacity:0;transition:max-height .25s ease,opacity .2s ease;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.08));border:1px solid var(--line);border-radius:12px;margin:8px 0;padding:0 12px}
@@ -79,7 +79,6 @@ tr:last-child td{border-bottom:0}
 .chip.logo-chip{display:inline-flex;align-items:center;gap:6px;padding-right:10px}
 .chip.dim{opacity:.35}
 .chip .logo{margin-right:0}
-.toggle-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:var(--ink);font-size:12px;padding:4px 10px;cursor:pointer}
 .toggle-btn .chev{display:inline-block;transition:transform .2s ease}
 .toggle-btn[aria-expanded="true"] .chev{transform:rotate(90deg)}
 .avail-panel{display:none;margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
@@ -134,8 +133,16 @@ tr:last-child td{border-bottom:0}
       </div>
 
       <div class="scroll" style="margin-top:10px">
-        <table id="tracker">
-          <thead><tr><th>Player</th><th>Status</th><th>Used Teams</th><th class="mono">Available</th></tr></thead>
+        <div class="mutey" id="densityWrap">
+          <label class="tiny muted">Density
+            <select id="trkDensity">
+              <option value="comfort">Comfort</option>
+              <option value="compact">Compact</option>
+            </select>
+          </label>
+        </div>
+        <table id="tracker" class="trk-compact">
+          <thead><tr><th>Player</th><th class="mono" style="text-align:right">Summary</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -390,6 +397,7 @@ const state = window.state;
 if(!state.specialFocus && state.data.players.length){ state.specialFocus = state.data.players[0].name; }
 if(!state.hedgePlayer && state.data.players.length){ state.hedgePlayer = state.data.players[0].name; }
 if(!state.hedgeWeek){ state.hedgeWeek = String(state.data.meta.currentWeek); }
+if(!state.trackerDensity){ state.trackerDensity = "compact"; }
 function cellLogo(code,big=false){ return `<img class="${big?'logo-lg':'logo'}" alt="${TEAM_NAME[code]}" src="${logo(code)}">`; }
 
 function renderHeader(){
@@ -467,13 +475,13 @@ function bindSpecialStatusFocus(){
 }
 
 function renderTracker(){
-  const tbody = document.querySelector("#tracker tbody"); tbody.innerHTML = "";
+  const tbody = document.querySelector("#tracker tbody"); if(!tbody) return; tbody.innerHTML = "";
   const week = state.data.meta.currentWeek;
   let active = 0;
 
-  state.data.players.forEach((pl, idx)=>{
-    const usedList = state.data.picks.filter(p=>p.player===pl.name).sort((a,b)=>cmpWeek(a.week,b.week))
-      .map(p=>`${wLabel(p.week)}: ${cellLogo(p.team)}${TEAM_NAME[p.team]} <span class="muted">(${p.result||"?"})</span>`).join(" · ");
+  state.data.players.forEach(pl=>{
+    const picksForPlayer = state.data.picks.filter(p=>p.player===pl.name).sort((a,b)=>cmpWeek(a.week,b.week));
+    const usedList = picksForPlayer.map(p=>({w:p.week,t:p.team,r:p.result||"?"}));
 
     const status = entryStatus(state.data.picks, pl.name, week);
     const avail  = availableForWeek(state.data.picks, pl.name, week);
@@ -483,47 +491,85 @@ function renderTracker(){
     const flags = [];
     if(tg === TG_THRESHOLD-1) flags.push(`<span class="chip warn tiny">about to 40% (TG)</span>`);
     if(tg >= TG_THRESHOLD)    flags.push(`<span class="chip info tiny">≥40% (TG)</span>`);
-    if(xm === XMAS_THRESHOLD-1){
-      const panelId = `xmas-panel-${idx}`;
-      const xmasTiles = XMAS.map(code=>{
-        const used = usedUp.includes(code)?" used":"";
-        return `<span class="special-team${used}">${cellLogo(code)}${TEAM_NAME[code]}</span>`;
-      }).join("");
-      flags.push(`
-        <span class="special-flag">
-          <span class="chip warn tiny">about to 40% (XMAS)</span>
-          <button type="button" class="special-toggle" data-target="${panelId}" aria-expanded="false">+</button>
-        </span>
-        <div class="special-panel" id="${panelId}">${xmasTiles}</div>
-      `);
-    }
+    if(xm === XMAS_THRESHOLD-1) flags.push(`<span class="chip warn tiny">about to 40% (XMAS)</span>`);
     if(xm >= XMAS_THRESHOLD)    flags.push(`<span class="chip info tiny">≥40% (XMAS)</span>`);
 
     let specialRisk = "";
-    if(isTG(week) && avail.length===0) specialRisk = `<span class="chip bad tiny">No TG team left — auto-elim risk</span>`;
-    if(isXMAS(week) && avail.length===0) specialRisk = `<span class="chip bad tiny">No XMAS team left — auto-elim risk</span>`;
+    if(isTG(week) && avail.length===0) specialRisk = `<span class="chip bad tiny">No TG team left</span>`;
+    if(isXMAS(week) && avail.length===0) specialRisk = `<span class="chip bad tiny">No XMAS team left</span>`;
 
     if(!status.eliminated) active++;
 
+    const mini = usedList.length
+      ? usedList.map(p=>`<span class="u-chip"><span class="wk">${wLabel(p.w)}</span>${cellLogo(p.t)}${TEAM_NAME[p.t]} <span class="muted">(${p.r})</span></span>`).join("")
+      : "<span class='muted'>—</span>";
+
+    const availChips = status.eliminated
+      ? "<span class='muted tiny'>—</span>"
+      : (avail.length? avail.map(c=>`<span class="chip">${cellLogo(c)}${TEAM_NAME[c]}</span>`).join("") : "<span class='muted tiny'>—</span>");
+
+    const usedDetail = usedList.length
+      ? usedList.map(p=>`<span class="chip">${cellLogo(p.t)}${TEAM_NAME[p.t]} <span class="muted">(${wLabel(p.w)} • ${p.r})</span></span>`).join("")
+      : "<span class='muted tiny'>—</span>";
+
     const tr = document.createElement("tr");
+    const panelId = `trk-${cssSafe(pl.name)}`;
     tr.innerHTML = `
-      <td><strong>${pl.name}</strong> ${flags.join(" ")} ${specialRisk}</td>
-      <td>${status.eliminated?`<span class="chip bad">ELIMINATED</span> <span class="muted tiny">${status.reason}</span>`:`<span class="chip ok">ACTIVE</span>`}</td>
-      <td class="tiny">${usedList || "<span class='muted'>—</span>"}</td>
-      <td class="tiny">${status.eliminated?"<span class='muted'>—</span>": (avail.length? avail.map(c=>`${cellLogo(c)}${TEAM_NAME[c]}`).join(" · "):"<span class='muted'>—</span>")}</td>
+      <td>
+        <div class="rowline">
+          <div>
+            <strong>${pl.name}</strong>
+            ${status.eliminated?`<span class="chip bad tiny">ELIMINATED</span>`:`<span class="chip ok tiny">ACTIVE</span>`}
+            ${flags.join(" ")} ${specialRisk}
+          </div>
+          <div class="right-meta">
+            <span class="mutey">Avail: ${status.eliminated?0:avail.length}</span>
+            <button class="toggle-btn" data-player="${htmlSafe(pl.name)}" aria-expanded="false" aria-controls="${panelId}"><span class="chev">▸</span> Show</button>
+          </div>
+        </div>
+        <div class="used-mini" style="margin-top:6px">${mini}</div>
+        <div class="trk-panel" id="${panelId}">
+          <div class="trk-grid">
+            <div class="trk-col">
+              <h4>Available Now</h4>
+              <div class="chips">${availChips}</div>
+            </div>
+            <div class="trk-col">
+              <h4>All Used (detail)</h4>
+              <div class="chips">${usedDetail}</div>
+            </div>
+          </div>
+        </div>
+      </td>
+      <td class="mono" style="text-align:right">${status.eliminated?"—":`${avail.length} avail`}</td>
     `;
     tbody.appendChild(tr);
-    tr.querySelectorAll(".special-toggle").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const panel = tr.querySelector(`#${btn.dataset.target}`);
-        if(!panel) return;
-        const isOpen = panel.classList.toggle("open");
-        btn.textContent = isOpen?"−":"+";
-        btn.setAttribute("aria-expanded", isOpen?"true":"false");
-      });
+  });
+
+  document.getElementById("activeCount").textContent = `${active} active / ${state.data.players.length}`;
+
+  tbody.querySelectorAll(".toggle-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const id = btn.getAttribute("aria-controls");
+      const panel = document.getElementById(id);
+      if(!panel) return;
+      const open = btn.getAttribute("aria-expanded")==="true";
+      btn.setAttribute("aria-expanded", String(!open));
+      panel.classList.toggle("open", !open);
+      btn.innerHTML = `<span class="chev">▸</span> ${!open?"Hide":"Show"}`;
     });
   });
-  document.getElementById("activeCount").textContent = `${active} active / ${state.data.players.length}`;
+
+  const dens = document.getElementById("trkDensity");
+  const table = document.getElementById("tracker");
+  if(dens && table){
+    dens.value = state.trackerDensity || "compact";
+    table.classList.toggle("trk-compact", dens.value!=="comfort");
+    dens.onchange = ()=>{
+      state.trackerDensity = dens.value;
+      table.classList.toggle("trk-compact", dens.value!=="comfort");
+    };
+  }
 }
 
 function renderSpecialStatus(){
