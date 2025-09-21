@@ -52,6 +52,19 @@ tr:last-child td{border-bottom:0}
 .special-focus-note{font-size:11px;color:var(--muted)}
 .game-at{font-size:11px;color:var(--muted);text-align:center;letter-spacing:.6px;text-transform:uppercase}
 #specialStatus tbody tr.focus td{background:rgba(255,255,255,.05)}
+.chip.logo-chip{display:inline-flex;align-items:center;gap:6px;padding-right:10px}
+.chip.dim{opacity:.35}
+.chip .logo{margin-right:0}
+.toggle-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:var(--ink);font-size:12px;padding:4px 10px;cursor:pointer}
+.toggle-btn .chev{display:inline-block;transition:transform .2s ease}
+.toggle-btn[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.avail-panel{display:none;margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+.avail-panel.open{display:block}
+.avail-grid{display:flex;flex-wrap:wrap;gap:16px}
+.avail-col{flex:1 1 220px;min-width:200px}
+.avail-col h4{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips .chip{border-style:dashed}
 </style>
 </head>
 <body>
@@ -97,7 +110,7 @@ tr:last-child td{border-bottom:0}
       <div class="tiny muted" style="margin-bottom:6px">If a player has no eligible team from a special set at that week, they’re auto-eliminated.</div>
       <div class="scroll">
         <table id="specialStatus">
-          <thead><tr><th>Player</th><th>Thanksgiving+BF</th><th>Available</th><th>Christmas</th><th>Available</th></tr></thead>
+          <thead><tr><th>Player</th><th>TG+BF</th><th></th><th>Christmas</th><th></th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -287,10 +300,11 @@ function renderHeader(){
 }
 
 function setSpecialFocus(name){
-  if(!name || state.specialFocus === name) return;
-  if(!state.data.players.some(p=>p.name===name)) return;
+  if(!name) return false;
+  if(!state.data.players.some(p=>p.name===name)) return false;
+  const changed = state.specialFocus !== name;
   state.specialFocus = name;
-  renderSpecialStatus();
+  return changed;
 }
 
 function renderSpecialGames(){
@@ -333,6 +347,22 @@ function renderSpecialGames(){
   }).join("");
 
   wrap.innerHTML = `${groups}<div class="special-focus-note">Viewing availability for <strong>${focus}</strong>.</div>`;
+}
+
+function bindSpecialStatusFocus(){
+  const table = document.getElementById("specialStatus");
+  if(!table || table.dataset.focusBound) return;
+  table.dataset.focusBound = "1";
+  table.addEventListener("click", event=>{
+    const btn = event.target.closest(".toggle-btn");
+    if(!btn) return;
+    requestAnimationFrame(()=>{
+      if(btn.getAttribute("aria-expanded")==="true"){
+        setSpecialFocus(btn.dataset.player);
+        renderSpecialGames();
+      }
+    });
+  });
 }
 
 function renderTracker(){
@@ -396,42 +426,80 @@ function renderTracker(){
 }
 
 function renderSpecialStatus(){
-  const tbody = document.querySelector("#specialStatus tbody"); tbody.innerHTML = "";
+  const tbody = document.querySelector("#specialStatus tbody");
+  tbody.innerHTML = "";
   const week = state.data.meta.currentWeek;
-  if(!state.specialFocus || !state.data.players.some(p=>p.name===state.specialFocus)){
-    state.specialFocus = state.data.players[0]?.name || "";
-  }
 
-  for(const pl of state.data.players){
-    const used = usedTeamsUpTo(state.data.picks, pl.name, week);
-    const {tg, xm} = specialUsage(used);
+  const mkChip = (code, disabled=false) =>
+    `<span class="chip logo-chip ${disabled?'dim':''}">${cellLogo(code)}${TEAM_NAME[code]}</span>`;
+
+  const mkAvailPanel = (name, used) => {
     const tgAvail = TG_BF.filter(t=>!used.includes(t));
     const xmAvail = XMAS.filter(t=>!used.includes(t));
-    const tgBadge = tg>=TG_THRESHOLD?`<span class="chip info tiny">≥40%</span>`: tg===(TG_THRESHOLD-1)?`<span class="chip warn tiny">about</span>`:"";
-    const xmBadge = xm>=XMAS_THRESHOLD?`<span class="chip info tiny">≥40%</span>`: xm===(XMAS_THRESHOLD-1)?`<span class="chip warn tiny">about</span>`:"";
+    const tgChips = tgAvail.length ? tgAvail.map(c=>mkChip(c)).join("") : `<span class="muted tiny">none</span>`;
+    const xmChips = xmAvail.length ? xmAvail.map(c=>mkChip(c)).join("") : `<span class="muted tiny">none</span>`;
+
+    return `
+      <div class="avail-panel" id="avail-${cssSafe(name)}">
+        <div class="avail-grid">
+          <div class="avail-col">
+            <h4>Thanksgiving + Black Friday</h4>
+            <div class="chips">${tgChips}</div>
+          </div>
+          <div class="avail-col">
+            <h4>Christmas</h4>
+            <div class="chips">${xmChips}</div>
+          </div>
+        </div>
+      </div>`;
+  };
+
+  for(const pl of state.data.players){
+    const usedUp = usedTeamsUpTo(state.data.picks, pl.name, week);
+    const tg = usedUp.filter(t=>TG_BF.includes(t)).length;
+    const xm = usedUp.filter(t=>XMAS.includes(t)).length;
+
+    const tgBadge = tg>=TG_THRESHOLD?`<span class="chip info tiny">≥40%</span>`:
+                    tg===(TG_THRESHOLD-1)?`<span class="chip warn tiny">about</span>`:"";
+    const xmBadge = xm>=XMAS_THRESHOLD?`<span class="chip info tiny">≥40%</span>`:
+                    xm===(XMAS_THRESHOLD-1)?`<span class="chip warn tiny">about</span>`:"";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><strong>${pl.name}</strong></td>
+      <td>
+        <strong>${pl.name}</strong>
+        <button class="toggle-btn" data-player="${htmlSafe(pl.name)}" aria-expanded="false" aria-controls="avail-${cssSafe(pl.name)}">
+          <span class="chev">▸</span><span class="tiny muted">Available teams</span>
+        </button>
+      </td>
       <td class="mono">${tg}/${TG_BF.length} ${tgBadge}</td>
-      <td class="tiny">${tgAvail.length? tgAvail.map(c=>`${cellLogo(c)}${TEAM_NAME[c]}`).join(" · "): "<span class='muted'>none</span>"}</td>
+      <td class="tiny"><span class="muted tiny">tap to view</span></td>
       <td class="mono">${xm}/${XMAS.length} ${xmBadge}</td>
-      <td class="tiny">${xmAvail.length? xmAvail.map(c=>`${cellLogo(c)}${TEAM_NAME[c]}`).join(" · "): "<span class='muted'>none</span>"}</td>
+      <td class="tiny"><span class="muted tiny">tap to view</span></td>
     `;
-    tr.dataset.player = pl.name;
-    tr.tabIndex = 0;
-    if(pl.name === state.specialFocus) tr.classList.add("focus");
     tbody.appendChild(tr);
+
+    const panelTr = document.createElement("tr");
+    panelTr.innerHTML = `
+      <td colspan="5" style="padding-top:0; padding-bottom:0;">
+        ${mkAvailPanel(pl.name, usedUp)}
+      </td>`;
+    tbody.appendChild(panelTr);
   }
 
-  tbody.querySelectorAll("tr").forEach(row=>{
-    row.addEventListener("mouseenter",()=>setSpecialFocus(row.dataset.player));
-    row.addEventListener("focusin",()=>setSpecialFocus(row.dataset.player));
-    row.addEventListener("click",()=>setSpecialFocus(row.dataset.player));
+  tbody.querySelectorAll(".toggle-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.getAttribute("aria-controls");
+      const panel = document.getElementById(id);
+      const open = btn.getAttribute("aria-expanded")==="true";
+      btn.setAttribute("aria-expanded", String(!open));
+      panel.classList.toggle("open", !open);
+    });
   });
-
-  renderSpecialGames();
 }
+
+function cssSafe(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-"); }
+function htmlSafe(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
 
 /* ===== Make Picks Panel ===== */
 function renderPickSelectors(){
@@ -488,7 +556,19 @@ function renderWeekSelects(){
   };
 }
 
-function renderAll(){ renderHeader(); renderWeekSelects(); renderTracker(); renderSpecialStatus(); renderPickSelectors(); document.getElementById("dataEditor").value = JSON.stringify(state.data, null, 2); thresholdAlerts(); }
+function renderAll(){
+  renderHeader();
+  renderWeekSelects();
+  renderTracker();
+  renderSpecialStatus();
+  bindSpecialStatusFocus();
+  const fallback = state.data.players.find(p=>p.name===state.specialFocus)?.name || state.data.players[0]?.name || "";
+  if(fallback) setSpecialFocus(fallback);
+  renderSpecialGames();
+  renderPickSelectors();
+  document.getElementById("dataEditor").value = JSON.stringify(state.data, null, 2);
+  thresholdAlerts();
+}
 renderAll();
 </script>
 </body>
