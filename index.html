@@ -54,6 +54,11 @@ tr:last-child td{border-bottom:0}
 .kit{display:flex;flex-wrap:wrap;gap:6px}
 .kit .tile{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:4px 8px}
 .kit .used{opacity:.35}
+.game-meta{display:flex;align-items:center;gap:6px;margin-top:6px}
+.net-logo{width:20px;height:20px;display:inline-block;vertical-align:middle}
+.net-badge{display:inline-flex;align-items:center;gap:4px;font:600 11px system-ui;padding:2px 6px;border-radius:999px;background:#f2f4f7;border:1px solid #d0d5dd;color:#111827}
+.net-badge.thanksgiving{background:#fff4e6;border-color:#ffd7a3;color:#8b5e34}
+.net-badge.tnf{background:#eef2ff;border-color:#c7d2fe;color:#3730a3}
 /* Hedge tab */
 .hedge-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .box{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(255,255,255,.03)}
@@ -210,7 +215,7 @@ tr:last-child td{border-bottom:0}
 
       <h3 style="margin-top:10px">Make Picks (Weeks 4+ or remaining W3)</h3>
       <div class="tiny muted" style="margin-bottom:6px">Choose a week, entry, then an <strong>available</strong> team (logos shown). Saved picks persist locally.</div>
-      <div class="controls" style="margin-bottom:8px">
+      <div id="pickControls" class="controls" style="margin-bottom:8px">
         <label class="tiny muted">Week
           <select id="pickWeek"></select>
         </label>
@@ -337,24 +342,6 @@ tr:last-child td{border-bottom:0}
     </div>
   </section>
 
-  <!-- Week Lines (American ML) editor -->
-  <section class="card" id="weekLinesEditor" style="margin-top:12px">
-    <div class="row">
-      <h2>Week Lines (American ML)</h2>
-      <span class="chip">Paste current week moneylines as JSON</span>
-    </div>
-    <div class="tiny muted" style="margin:6px 0 8px">
-      Example schema (Week 3): { "3": { "BUF@MIA": {"home":"MIA","away":"BUF","ml":{"BUF":-135,"MIA":115}}, "KC@LAC": { ... } } }
-    </div>
-    <textarea id="linesEditor" rows="8" spellcheck="false" style="width:100%"></textarea>
-    <div class="row" style="margin-top:8px">
-      <div class="row-gap">
-        <button id="applyLines" class="toggle-btn" type="button">Save Lines ✅</button>
-        <button id="resetLines" class="toggle-btn" type="button">Reset to Blank ↺</button>
-      </div>
-      <span class="note">Hedge autocompletes opponent ML when a pick exists for that week.</span>
-    </div>
-  </section>
   </div><!-- /tab-hedge -->
 
   <footer>© <span id="year"></span> DeadlineNoon — Survivor</footer>
@@ -367,6 +354,100 @@ const TEAM_NAME = {"ARI":"Cardinals","ATL":"Falcons","BAL":"Ravens","BUF":"Bills
 const NFL = Object.keys(TEAM_NAME);
 const logo = c => `https://a.espncdn.com/i/teamlogos/nfl/500/${ESPN[c]}.png`;
 
+/* ===== Broadcast Metadata ===== */
+const NETWORK_LOGO = {
+  ABC:'/networks/abc.svg',
+  CBS:'/networks/cbs.svg',
+  FOX:'/networks/fox.svg',
+  NBC:'/networks/nbc.svg',
+  ESPN:'/networks/espn.svg',
+  NFLN:'/networks/nfln.svg',
+  PRIME:'/networks/prime.svg'
+};
+
+function resolveNetwork(gameObj){
+  if(gameObj?.network && NETWORK_LOGO[gameObj.network.toUpperCase()]){
+    return gameObj.network.toUpperCase();
+  }
+  const slot = gameObj?.slot ? String(gameObj.slot).toUpperCase() : "";
+  if(slot === 'TNF') return 'PRIME';
+  if(slot === 'SNF') return 'NBC';
+  if(slot === 'MNF') return 'ESPN';
+
+  if(gameObj?.kickoff){
+    const d = new Date(gameObj.kickoff);
+    if(Number.isFinite(d.getTime())){
+      const dow = d.getUTCDay();
+      const hour = d.getUTCHours();
+      if(dow === 4) return 'PRIME';
+      if(dow === 0 && hour >= 22) return 'NBC';
+      if(dow === 1) return 'ESPN';
+    }
+  }
+  return 'FOX';
+}
+
+function isThanksgiving(date){
+  const d = new Date(date);
+  if(!Number.isFinite(d.getTime())) return false;
+  if(d.getUTCMonth() !== 10) return false;
+  const first = new Date(Date.UTC(d.getUTCFullYear(), 10, 1));
+  const firstThuOffset = (4 - first.getUTCDay() + 7) % 7;
+  const thanksgiving = new Date(Date.UTC(d.getUTCFullYear(), 10, 1 + firstThuOffset + 21));
+  return d.getUTCFullYear() === thanksgiving.getUTCFullYear()
+    && d.getUTCMonth() === thanksgiving.getUTCMonth()
+    && d.getUTCDate() === thanksgiving.getUTCDate();
+}
+
+function isThanksgivingEve(date){
+  const d = new Date(date);
+  if(!Number.isFinite(d.getTime())) return false;
+  const prev = new Date(d.getTime() - 24*60*60*1000);
+  return isThanksgiving(prev);
+}
+
+function resolveHolidayBadge(gameObj){
+  if(!gameObj?.kickoff) return null;
+  const dt = new Date(gameObj.kickoff);
+  if(isThanksgiving(dt)) return {kind:'thanksgiving', text:'Thanksgiving'};
+  if(isThanksgivingEve(dt)) return {kind:'tnf', text:'Thanksgiving Eve'};
+  if(dt.getUTCDay() === 4) return {kind:'tnf', text:'TNF'};
+  const slot = gameObj?.slot ? String(gameObj.slot).toUpperCase() : "";
+  if(slot === 'TNF') return {kind:'tnf', text:'TNF'};
+  return null;
+}
+
+function networkMetaHtml(gameObj){
+  if(!gameObj) return '';
+  const net = resolveNetwork(gameObj);
+  const badge = resolveHolidayBadge(gameObj);
+  const logoHtml = NETWORK_LOGO[net]
+    ? `<img class="net-logo" alt="${net}" src="${NETWORK_LOGO[net]}">`
+    : `<span class="net-badge">${net}</span>`;
+
+  let badgeHtml = '';
+  if(badge){
+    if(badge.kind === 'thanksgiving'){
+      badgeHtml = `<span class="net-badge thanksgiving"><img class="net-logo" alt="Turkey" src="/networks/thanksgiving.svg" style="width:14px;height:14px;"> ${badge.text}</span>`;
+    }else{
+      badgeHtml = `<span class="net-badge tnf">${badge.text}</span>`;
+    }
+  }
+
+  return `<div class="game-meta">${logoHtml}${badgeHtml}</div>`;
+}
+
+function renderNetworkMeta(containerEl, gameObj){
+  if(!containerEl) return;
+  const html = networkMetaHtml(gameObj);
+  if(!html) return;
+  containerEl.querySelector('.game-meta')?.remove();
+  const frag = document.createElement('div');
+  frag.innerHTML = html;
+  const node = frag.firstElementChild;
+  if(node) containerEl.appendChild(node);
+}
+
 /* ===== Special Weeks ===== */
 const TG_BF = ["GB","DET","KC","DAL","CIN","BAL","CHI","PHI"]; // 8
 const XMAS  = ["DAL","WAS","DET","MIN","DEN","KC"];            // 6
@@ -378,19 +459,19 @@ const SPECIAL_GAME_GROUPS = [
     key:"TG_BF",
     title:"Thanksgiving & Black Friday Slate",
     games:[
-      {tag:"TG", date:"Thu • Nov 27", time:"12:30p ET", away:"GB", home:"DET"},
-      {tag:"TG", date:"Thu • Nov 27", time:"4:30p ET", away:"KC", home:"DAL"},
-      {tag:"TG", date:"Thu • Nov 27", time:"8:20p ET", away:"CIN", home:"BAL"},
-      {tag:"BF", date:"Fri • Nov 28", time:"3:00p ET", away:"CHI", home:"PHI"}
+      {tag:"TG", date:"Thu • Nov 27", time:"12:30p ET", away:"GB", home:"DET", network:"FOX", kickoff:"2025-11-27T17:30:00Z"},
+      {tag:"TG", date:"Thu • Nov 27", time:"4:30p ET", away:"KC", home:"DAL", network:"CBS", kickoff:"2025-11-27T21:30:00Z"},
+      {tag:"TG", date:"Thu • Nov 27", time:"8:20p ET", away:"CIN", home:"BAL", network:"NBC", kickoff:"2025-11-28T01:20:00Z"},
+      {tag:"BF", date:"Fri • Nov 28", time:"3:00p ET", away:"CHI", home:"PHI", network:"PRIME", kickoff:"2025-11-28T20:00:00Z", slot:"TNF"}
     ]
   },
   {
     key:"XMAS",
     title:"Christmas Slate",
     games:[
-      {tag:"XMAS", date:"Thu • Dec 25", time:"1:00p ET", away:"MIN", home:"DET"},
-      {tag:"XMAS", date:"Thu • Dec 25", time:"4:30p ET", away:"WAS", home:"DAL"},
-      {tag:"XMAS", date:"Thu • Dec 25", time:"8:15p ET", away:"DEN", home:"KC"}
+      {tag:"XMAS", date:"Thu • Dec 25", time:"1:00p ET", away:"MIN", home:"DET", network:"FOX", kickoff:"2025-12-25T18:00:00Z"},
+      {tag:"XMAS", date:"Thu • Dec 25", time:"4:30p ET", away:"WAS", home:"DAL", network:"CBS", kickoff:"2025-12-25T21:30:00Z"},
+      {tag:"XMAS", date:"Thu • Dec 25", time:"8:15p ET", away:"DEN", home:"KC", network:"ESPN", kickoff:"2025-12-26T01:15:00Z", slot:"MNF"}
     ]
   }
 ];
@@ -527,52 +608,66 @@ function isUnlockedBeyond3(){
   return now >= unlock;
 }
 
+function isWeekLocked(wk){
+  const num = Number(wk);
+  return Number.isFinite(num) && !isUnlockedBeyond3() && num > LOCKED_MAX_WEEK;
+}
+
 function clampWeekValue(wk){
-  if(!isUnlockedBeyond3() && Number(wk) > LOCKED_MAX_WEEK) return LOCKED_MAX_WEEK;
+  if(isWeekLocked(wk)){
+    return typeof wk === 'string' ? String(LOCKED_MAX_WEEK) : LOCKED_MAX_WEEK;
+  }
   return wk;
 }
 
 function lockFutureWeeksUI(){
   const weekSel = document.getElementById('hedgeWeek');
-  if(!weekSel) return;
-
   const unlocked = isUnlockedBeyond3();
-  Array.from(weekSel.options).forEach(opt=>{
-    const wk = Number(opt.value);
-    if(Number.isFinite(wk) && wk > LOCKED_MAX_WEEK){
-      opt.disabled = !unlocked;
-      if(!unlocked){
+  if(weekSel){
+    Array.from(weekSel.options).forEach(opt=>{
+      const wk = Number(opt.value);
+      const locked = Number.isFinite(wk) && wk > LOCKED_MAX_WEEK && !unlocked;
+      opt.disabled = locked;
+      if(locked){
         opt.title = 'Locked until Tue 12:01 AM ET';
         opt.classList.add('is-locked');
       }else{
         opt.title = '';
         opt.classList.remove('is-locked');
       }
+    });
+
+    if(!unlocked){
+      const cur = Number(weekSel.value);
+      if(Number.isFinite(cur) && cur > LOCKED_MAX_WEEK){
+        weekSel.value = String(LOCKED_MAX_WEEK);
+        if(typeof renderHedge === 'function') renderHedge();
+      }
     }
-  });
 
-  const cur = Number(weekSel.value);
-  if(!unlocked && cur > LOCKED_MAX_WEEK){
-    weekSel.value = String(LOCKED_MAX_WEEK);
-    if(typeof renderHedge === 'function') renderHedge();
+    state.hedgeWeek = weekSel.value;
+
+    let bar = document.getElementById('weekLockBanner');
+    if(!bar){
+      bar = document.createElement('div');
+      bar.id = 'weekLockBanner';
+      bar.style.cssText = 'margin:.5rem 0;padding:.5rem .75rem;border-radius:8px;background:#fff4cc;border:1px solid #ffd66b;font:500 13px system-ui;color:#614300;';
+      const host = weekSel.closest('.row-gap') || weekSel.parentElement;
+      host?.appendChild(bar);
+    }
+
+    if(!unlocked){
+      const unlockAt = nextTuesdayAt0001ET();
+      const fmt = unlockAt.toLocaleString('en-US', { timeZone:'America/New_York', hour:'numeric', minute:'2-digit', weekday:'short', month:'short', day:'numeric' });
+      bar.textContent = `Weeks ${LOCKED_MAX_WEEK+1}+ unlock Tue 12:01 AM ET (${fmt}).`;
+      bar.style.display = '';
+    }else{
+      bar.style.display = 'none';
+    }
   }
 
-  let bar = document.getElementById('weekLockBanner');
-  if(!bar){
-    bar = document.createElement('div');
-    bar.id = 'weekLockBanner';
-    bar.style.cssText = 'margin:.5rem 0;padding:.5rem .75rem;border-radius:8px;background:#fff4cc;border:1px solid #ffd66b;font:500 13px system-ui;color:#614300;';
-    const host = weekSel.closest('.row-gap') || weekSel.parentElement;
-    host?.appendChild(bar);
-  }
-
-  if(!unlocked){
-    const unlockAt = nextTuesdayAt0001ET();
-    const fmt = unlockAt.toLocaleString('en-US', { timeZone:'America/New_York', hour:'numeric', minute:'2-digit', weekday:'short', month:'short', day:'numeric' });
-    bar.textContent = `Weeks ${LOCKED_MAX_WEEK+1}+ unlock Tue 12:01 AM ET (${fmt}).`;
-    bar.style.display = '';
-  }else{
-    bar.style.display = 'none';
+  if(typeof window.updatePickLockState === 'function'){
+    window.updatePickLockState();
   }
 }
 
@@ -610,28 +705,114 @@ function cellLogo(code,big=false){ return `<img class="${big?'logo-lg':'logo'}" 
 const LS_LINES = "dn_lines_v1";
 const LINES_DEFAULT = {
   "3": {
-    "BUF@MIA": { home: "MIA", away: "BUF", ml: { "BUF": -135, "MIA": 115 } },
-    "KC@LAC":  { home: "LAC", away: "KC",  ml: { "KC": -180, "LAC": 150 } }
+    "IND@TEN": { home: "TEN", away: "IND", ml: { "IND": 140, "TEN": -165 } },
+    "PIT@NE":  { home: "NE",  away: "PIT", ml: { "PIT": -123, "NE": 104 } },
+    "NYJ@TB":  { home: "TB",  away: "NYJ", ml: { "NYJ": 256, "TB": -325 } },
+    "LV@WAS":  { home: "WAS", away: "LV",  ml: { "LV": 130, "WAS": -152 } },
+    "LAR@PHI": { home: "PHI", away: "LAR", ml: { "LAR": 161, "PHI": -182 } },
+    "ATL@CAR": { home: "CAR", away: "ATL", ml: { "ATL": -232, "CAR": 188 } },
+    "CIN@MIN": { home: "MIN", away: "CIN", ml: { "CIN": 134, "MIN": -161 } },
+    "HOU@JAX": { home: "JAX", away: "HOU", ml: { "HOU": 114, "JAX": -126 } },
+    "GB@CLE":  { home: "CLE", away: "GB",  ml: { "GB": -458, "CLE": 366 } },
+    "DEN@LAC": { home: "LAC", away: "DEN", ml: { "DEN": 130, "LAC": -154 } },
+    "NO@SEA":  { home: "SEA", away: "NO",  ml: { "NO": 296, "SEA": -362 } },
+    "ARI@SF":  { home: "SF",  away: "ARI", ml: { "ARI": 116, "SF": -133 } },
+    "DAL@CHI": { home: "CHI", away: "DAL", ml: { "DAL": -121, "CHI": 105 } },
+    "KC@NYG":  { home: "NYG", away: "KC",  ml: { "KC": -308, "NYG": 244 } },
+    "DET@BAL": { home: "BAL", away: "DET", ml: { "DET": 198, "BAL": -232 } }
   }
 };
+const WEEK3_FIX = {
+  "IND@TEN": { home: "TEN", away: "IND" },
+  "PIT@NE":  { home: "NE",  away: "PIT" },
+  "NYJ@TB":  { home: "TB",  away: "NYJ" },
+  "LV@WAS":  { home: "WAS", away: "LV" },
+  "LAR@PHI": { home: "PHI", away: "LAR" },
+  "ATL@CAR": { home: "CAR", away: "ATL" },
+  "CIN@MIN": { home: "MIN", away: "CIN" },
+  "HOU@JAX": { home: "JAX", away: "HOU" },
+  "GB@CLE":  { home: "CLE", away: "GB" },
+  "DEN@LAC": { home: "LAC", away: "DEN" },
+  "NO@SEA":  { home: "SEA", away: "NO" },
+  "ARI@SF":  { home: "SF",  away: "ARI" },
+  "DAL@CHI": { home: "CHI", away: "DAL" },
+  "KC@NYG":  { home: "NYG", away: "KC" },
+  "DET@BAL": { home: "BAL", away: "DET" }
+};
+function getTeamsFor(gameId, weekNumber){
+  if(String(weekNumber)==="3" && WEEK3_FIX[gameId]){
+    return { ...WEEK3_FIX[gameId] };
+  }
+  const defaultsForWeek = LINES_DEFAULT[String(weekNumber)]?.[gameId];
+  if(defaultsForWeek){
+    return { home: defaultsForWeek.home, away: defaultsForWeek.away };
+  }
+  const parts = gameId ? gameId.split("@") : [];
+  if(parts.length === 2){
+    const [away, home] = parts;
+    return { home, away };
+  }
+  return { home: "", away: "" };
+}
+const cloneDeep = obj => JSON.parse(JSON.stringify(obj));
+function needsWeekRefresh(lines, week){
+  const defaults = LINES_DEFAULT[week];
+  if(!defaults) return false;
+  const stored = lines && lines[week];
+  if(!stored) return true;
+  return Object.keys(defaults).some(matchId=>{
+    const expected = getTeamsFor(matchId, week);
+    const game = stored[matchId];
+    if(!game) return true;
+    return game.home !== expected.home || game.away !== expected.away;
+  });
+}
+function refreshWeek(lines, week){
+  const defaults = LINES_DEFAULT[week];
+  if(!defaults) return lines;
+  const base = cloneDeep(lines || {});
+  base[week] = {};
+  Object.entries(defaults).forEach(([matchId, defGame])=>{
+    const storedGame = lines && lines[week] && lines[week][matchId];
+    const merged = cloneDeep(defGame);
+    const teams = getTeamsFor(matchId, week);
+    merged.home = teams.home;
+    merged.away = teams.away;
+    if(storedGame && storedGame.home === teams.home && storedGame.away === teams.away && storedGame.ml){
+      merged.ml = Object.assign({}, merged.ml || {}, storedGame.ml);
+    }
+    base[week][matchId] = merged;
+  });
+  return base;
+}
 function loadLines(){
   try{
     const raw = localStorage.getItem(LS_LINES);
-    if(raw) return JSON.parse(raw);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(needsWeekRefresh(parsed, "3")){
+        const updated = refreshWeek(parsed, "3");
+        saveLines(updated);
+        return updated;
+      }
+      return parsed;
+    }
   }catch{}
-  return JSON.parse(JSON.stringify(LINES_DEFAULT));
+  return cloneDeep(LINES_DEFAULT);
 }
 function saveLines(obj){ localStorage.setItem(LS_LINES, JSON.stringify(obj)); }
 let NFL_LINES = loadLines();
 function findOpponentInfo(week, myTeam){
   const matchups = NFL_LINES[String(week)] || {};
   for(const key of Object.keys(matchups)){
-    const game = matchups[key]; if(!game || !game.ml) continue;
-    if(game.home === myTeam){
-      return { team: game.away, ml: game.ml?.[game.away] ?? null };
+    const teams = getTeamsFor(key, week);
+    const game = matchups[key] || {};
+    const mlBook = game.ml || {};
+    if(teams.home === myTeam){
+      return { team: teams.away, ml: mlBook?.[teams.away] ?? null };
     }
-    if(game.away === myTeam){
-      return { team: game.home, ml: game.ml?.[game.home] ?? null };
+    if(teams.away === myTeam){
+      return { team: teams.home, ml: mlBook?.[teams.home] ?? null };
     }
   }
   return null;
@@ -682,6 +863,7 @@ function renderSpecialGames(){
     const cards = group.games.map(game=>{
       const awayUsed = used.has(game.away);
       const homeUsed = used.has(game.home);
+      const meta = networkMetaHtml(game);
       return `
         <div class="game-card">
           <div class="game-header">
@@ -691,6 +873,7 @@ function renderSpecialGames(){
               <div>${game.time}</div>
             </div>
           </div>
+          ${meta}
           <div class="game-body">
             <div class="game-team${awayUsed?" used":""}">${cellLogo(game.away,true)}${TEAM_NAME[game.away]}</div>
             <div class="game-at">at</div>
@@ -975,6 +1158,7 @@ function renderHedgeSelectors(){
     : String(state.data.meta.currentWeek);
   const desiredWeek = clampWeekValue(desiredWeekRaw);
   selW.value = desiredWeek;
+  state.hedgeWeek = selW.value;
 
   const playerExists = state.data.players.some(p=>p.name===state.hedgePlayer);
   const desiredPlayer = playerExists ? state.hedgePlayer : (state.data.players[0]?.name || "");
@@ -1072,10 +1256,11 @@ function renderHedge(){
 
   const fallbackMl = amerEl && amerEl.value!=="" ? Number(amerEl.value) : null;
   const displayML = opponentInfo?.ml ?? fallbackMl;
+  const oppLogoSmall = opponentInfo ? cellLogo(opponentInfo.team) : "";
+  const oppName = opponentInfo ? (TEAM_NAME[opponentInfo.team] || opponentInfo.team) : "";
   let badgeHTML = "—";
 
   if(current){
-    const myLogo = cellLogo(current.team);
     if(String(week)==="3"){
       const status = FIELD_RESULTS_W3[current.team];
       const cnt = (FIELD_W3 && FIELD_W3[current.team])||0;
@@ -1083,24 +1268,29 @@ function renderHedge(){
         if(team==="NOPICK" || FIELD_RESULTS_W3[team]==='W') return sum;
         return sum + count;
       },0) || 1;
-      if(status==='W'){
-        badgeHTML = `${myLogo}${TEAM_NAME[current.team]} ✓ already won`;
+      const fieldMsg = status==='W'
+        ? `${TEAM_NAME[current.team] || current.team} ✓ already won`
+        : (()=>{
+            const fieldPct = Math.round((cnt/activeTotal)*1000)/10;
+            return `${TEAM_NAME[current.team] || current.team} field: ${fieldPct}%`;
+          })();
+      if(opponentInfo){
+        const mlPart = displayML!==null ? ` ${fmtML(displayML)}` : "";
+        badgeHTML = `${oppLogoSmall}${oppName}${mlPart} • ${fieldMsg}`;
+      }else if(displayML!==null){
+        badgeHTML = `Opponent ML ${fmtML(displayML)} • ${fieldMsg}`;
       }else{
-        const fieldPct = Math.round((cnt/activeTotal)*1000)/10;
-        badgeHTML = `${myLogo}${TEAM_NAME[current.team]} field: ${fieldPct}%`;
-      }
-      if(displayML!==null && opponentInfo){
-        badgeHTML += ` • ${cellLogo(opponentInfo.team)}${TEAM_NAME[opponentInfo.team]} ${fmtML(displayML)}`;
+        badgeHTML = `${fieldMsg} — opponent ML pending`;
       }
     }else if(opponentInfo){
-      badgeHTML = `${myLogo}${TEAM_NAME[current.team]} vs ${cellLogo(opponentInfo.team)}${TEAM_NAME[opponentInfo.team]}`;
+      badgeHTML = `Hedge vs ${oppLogoSmall}${oppName}`;
       if(displayML!==null){
-        badgeHTML += ` • Opp ML: ${fmtML(displayML)}`;
+        badgeHTML += ` • ML ${fmtML(displayML)}`;
       }
     }else if(displayML!==null){
-      badgeHTML = `${myLogo}${TEAM_NAME[current.team]} • Opp ML: ${fmtML(displayML)}`;
+      badgeHTML = `Opponent ML ${fmtML(displayML)}`;
     }else{
-      badgeHTML = `${myLogo}${TEAM_NAME[current.team]} (opponent ML pending)`;
+      badgeHTML = `Opponent ML pending`;
     }
   }
 
@@ -1191,20 +1381,27 @@ function renderHedgeCalc(){
   const floorAfterBuy = floorBeforeBuy - buyIn;
 
   if(sumEl){
-    const myTeam = explain?.dataset.myTeam || "";
     const oppTeam = explain?.dataset.oppTeam || "";
-    const myLogo = myTeam ? cellLogo(myTeam,true) : "";
     const oppLogo = oppTeam ? cellLogo(oppTeam,true) : "";
+    const oppName = oppTeam ? (TEAM_NAME[oppTeam] || oppTeam) : "";
+    let summaryLogo = oppTeam ? oppLogo : "";
+    let summaryText = "";
 
     if(stake <= 0){
-      sumEl.innerHTML = `${myTeam?myLogo:""}<span>Stake is $0 — no hedge in place yet.</span>`;
+      summaryLogo = "";
+      summaryText = "Stake is $0 — no hedge in place yet.";
     }else if(ml===null || Number.isNaN(ml)){
-      sumEl.innerHTML = `${myLogo}${oppLogo}<span>Wager <strong>$${stake.toFixed(2)}</strong>. Add an opponent ML to see exact payouts. Floor before buy-in: <strong>$${floorBeforeBuy.toFixed(2)}</strong>.</span>`;
+      const lead = oppName ? `Hedge vs ${oppName}. ` : "";
+      summaryText = `${lead}Wager <strong>$${stake.toFixed(2)}</strong>. Add an opponent ML to see exact payouts. Floor before buy-in: <strong>$${floorBeforeBuy.toFixed(2)}</strong>.`;
     }else if(payout!==null){
-      sumEl.innerHTML = `${myLogo}${oppLogo}<span>Wager <strong>$${stake.toFixed(2)}</strong> on <strong>${fmtML(ml)}</strong>. If your pick loses you receive <strong>$${totalReturn.toFixed(2)}</strong> (profit +$${payout.toFixed(2)}); if it wins you drop <strong>$${stake.toFixed(2)}</strong>. Floor before buy-in ≈ <strong>$${floorBeforeBuy.toFixed(2)}</strong> (${floorAfterBuy >=0?"after-buy-in floor":"after-buy-in shortfall"} ${floorAfterBuy>=0?"+":"-"}$${Math.abs(floorAfterBuy).toFixed(2)}).</span>`;
+      const lead = oppName ? `Hedge vs ${oppName}. ` : "";
+      summaryText = `${lead}Wager <strong>$${stake.toFixed(2)}</strong> on <strong>${fmtML(ml)}</strong>. If your pick loses you receive <strong>$${totalReturn.toFixed(2)}</strong> (profit +$${payout.toFixed(2)}); if it wins you drop <strong>$${stake.toFixed(2)}</strong>. Floor before buy-in ≈ <strong>$${floorBeforeBuy.toFixed(2)}</strong> (${floorAfterBuy >=0?"after-buy-in floor":"after-buy-in shortfall"} ${floorAfterBuy>=0?"+":"-"}$${Math.abs(floorAfterBuy).toFixed(2)}).`;
     }else{
-      sumEl.innerHTML = `${myLogo}${oppLogo}<span>Wager $${stake.toFixed(2)} at the opponent ML. Floor before buy-in: $${floorBeforeBuy.toFixed(2)}.</span>`;
+      const lead = oppName ? `Hedge vs ${oppName}. ` : "";
+      summaryText = `${lead}Wager $${stake.toFixed(2)} at the opponent ML. Floor before buy-in: $${floorBeforeBuy.toFixed(2)}.`;
     }
+
+    sumEl.innerHTML = `${summaryLogo}<span>${summaryText}</span>`;
   }
 
   if(whyEl){
@@ -1221,6 +1418,196 @@ function renderHedgeCalc(){
     }
     whyEl.textContent = `${msg} Hedging trades upside for certainty; use it when the opponent price is good or your pick feels shaky.`;
   }
+}
+
+/* ===== Hedge Engine (American ML presets) ===== */
+const HEDGE_DOM = {
+  weekSel: 'hedgeWeek',
+  teamSel: 'hedgeTeam',
+  modeSel: 'hedgeMode',
+  oppMlInput: 'oppML',
+  spInput: 'spreadPrice',
+  entryInput: 'entryFee',
+  recouped: 'recoupedSoFar',
+  outGrid: 'hedgeGrid'
+};
+
+const HEDGE_EMPTY = () => ({
+  stakeML: 0,
+  stakeSP: 0,
+  profit_dog_wins: 0,
+  profit_dog_covers: 0,
+  loss_fav_covers: 0
+});
+
+const payPerDollar = american => {
+  const a = Number(american);
+  if(!Number.isFinite(a) || a === 0) return 0;
+  return a > 0 ? a/100 : 100/Math.abs(a);
+};
+
+const impliedProb = american => {
+  const a = Number(american);
+  if(!Number.isFinite(a) || a === 0) return 0;
+  return a > 0 ? 100/(a+100) : Math.abs(a)/(Math.abs(a)+100);
+};
+
+function weeklyHedgeTarget(entryFee, week, recouped = 0){
+  const E = Math.max(0, Number(entryFee) || 0);
+  const w = Number(week);
+  const R = Math.max(0, Number(recouped) || 0);
+  if(!Number.isFinite(w)) return Math.max(0, E - R);
+
+  if(w <= 11){
+    const need = Math.max(0, E - R);
+    const weeksLeftToTG = Math.max(1, 12 - w);
+    const amortized = need / weeksLeftToTG;
+    const rampMin = 0.08 * E * Math.pow(1.15, Math.max(0, w-1));
+    return Math.max(amortized, rampMin);
+  }
+  if(w <= 14){
+    return Math.max(0.35 * E, 0.30 * E * Math.pow(1.25, w - 12));
+  }
+  return Math.max(0.60 * E, 0.45 * E * Math.pow(1.30, w - 15));
+}
+
+const hedgeWithFullML = (target, oppML) => {
+  const pML = payPerDollar(oppML);
+  if(pML <= 0) return HEDGE_EMPTY();
+  const stakeML = target / pML;
+  return {
+    stakeML,
+    stakeSP: 0,
+    profit_dog_wins: target,
+    profit_dog_covers: -stakeML,
+    loss_fav_covers: -stakeML
+  };
+};
+
+const hedgeSoldierCover = (target, oppML, spreadPrice) => {
+  const pML = payPerDollar(oppML);
+  const pSP = payPerDollar(spreadPrice);
+  if(pML <= 0 || pSP <= 0) return HEDGE_EMPTY();
+
+  const stakeML = target / (1 + pML);
+  const stakeSP = target / (pSP * (1 + pML));
+  return {
+    stakeML,
+    stakeSP,
+    profit_dog_wins: target,
+    profit_dog_covers: stakeSP * pSP - stakeML,
+    loss_fav_covers: -(stakeML + stakeSP)
+  };
+};
+
+const hedgeOBlock = (target, oppML, spreadPrice, ratio = 0.75) => {
+  const pML = payPerDollar(oppML);
+  const pSP = payPerDollar(spreadPrice);
+  if(pML <= 0 || pSP <= 0) return HEDGE_EMPTY();
+
+  const totalStake = target / (ratio * pML + (1 - ratio) * pSP);
+  const stakeML = ratio * totalStake;
+  const stakeSP = (1 - ratio) * totalStake;
+  return {
+    stakeML,
+    stakeSP,
+    profit_dog_wins: target,
+    profit_dog_covers: stakeSP * pSP - stakeML,
+    loss_fav_covers: -totalStake
+  };
+};
+
+const hedgeCapone = (target, oppML, spreadPrice, ratio = 0.75) => {
+  const pML = payPerDollar(oppML);
+  const pSP = payPerDollar(spreadPrice);
+  if(pML <= 0 || pSP <= 0) return HEDGE_EMPTY();
+
+  const totalStake = target / ((1 - ratio) * pML + ratio * pSP);
+  const stakeML = (1 - ratio) * totalStake;
+  const stakeSP = ratio * totalStake;
+  return {
+    stakeML,
+    stakeSP,
+    profit_dog_wins: target,
+    profit_dog_covers: stakeSP * pSP - stakeML,
+    loss_fav_covers: -totalStake
+  };
+};
+
+function renderHedgeGridOutput(outcome, container){
+  const el = document.getElementById(container || HEDGE_DOM.outGrid);
+  if(!el) return;
+  const safe = outcome || HEDGE_EMPTY();
+  const rows = [
+    ['Stake ML', safe.stakeML],
+    ['Stake Spread', safe.stakeSP],
+    ['Dog Wins', safe.profit_dog_wins],
+    ['Dog Covers', safe.profit_dog_covers],
+    ['Fav Wins & Covers', safe.loss_fav_covers]
+  ];
+  el.innerHTML = `
+    <table class="mini">
+      <tbody>
+        ${rows.map(([label,val])=>{
+          const num = Number(val) || 0;
+          const fmt = (num>=0?'+':'-') + '$' + Math.abs(num).toFixed(2);
+          return `<tr><td>${label}</td><td style="text-align:right">${fmt}</td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function runHedgeCalcStandalone(){
+  const weekRaw = document.getElementById(HEDGE_DOM.weekSel)?.value;
+  const week = Number(weekRaw);
+  const mode = (document.getElementById(HEDGE_DOM.modeSel)?.value || 'CHIRAQI').toUpperCase();
+  const oppML = Number(document.getElementById(HEDGE_DOM.oppMlInput)?.value || 0);
+  const spreadPrice = Number(document.getElementById(HEDGE_DOM.spInput)?.value || -110);
+  const entryFee = Number(document.getElementById(HEDGE_DOM.entryInput)?.value || 1300);
+  const recouped = Number(document.getElementById(HEDGE_DOM.recouped)?.value || 0);
+  const target = weeklyHedgeTarget(entryFee, week, recouped);
+
+  let result;
+  switch(mode){
+    case 'CHIRAQI':
+      result = hedgeWithFullML(target, oppML);
+      break;
+    case 'SOLDIER':
+      result = hedgeSoldierCover(target, oppML, spreadPrice);
+      break;
+    case 'OBLOCK':
+      result = hedgeOBlock(target, oppML, spreadPrice);
+      break;
+    case 'CCC':
+    default:
+      result = hedgeCapone(target, oppML, spreadPrice);
+      break;
+  }
+
+  renderHedgeGridOutput(result, HEDGE_DOM.outGrid);
+  return result;
+}
+
+function initStandaloneHedgeCalc(){
+  const inputs = [
+    HEDGE_DOM.weekSel,
+    HEDGE_DOM.teamSel,
+    HEDGE_DOM.modeSel,
+    HEDGE_DOM.oppMlInput,
+    HEDGE_DOM.spInput,
+    HEDGE_DOM.entryInput,
+    HEDGE_DOM.recouped
+  ];
+  inputs.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){
+      ['change','input'].forEach(evt=>{
+        el.addEventListener(evt, runHedgeCalcStandalone);
+      });
+    }
+  });
+  runHedgeCalcStandalone();
+  window.runHedgeCalcStandalone = runHedgeCalcStandalone;
 }
 
 function bindHedgeCalcInputs(){
@@ -1456,6 +1843,10 @@ function renderPickSelectors(){
   const weekSel = document.getElementById("pickWeek");
   const playerSel = document.getElementById("pickPlayer");
   const teamSel = document.getElementById("pickTeam");
+  const saveBtn = document.getElementById("savePick");
+  const controlsWrap = document.getElementById("pickControls");
+  const tilesWrap = document.getElementById("availabilityTiles");
+  let lockMsg = document.getElementById("pickLockBanner");
   weekSel.innerHTML = ""; playerSel.innerHTML = ""; teamSel.innerHTML = "";
 
   for(const w of weekOrder()){
@@ -1467,43 +1858,110 @@ function renderPickSelectors(){
     const opt = document.createElement("option"); opt.value = p.name; opt.textContent = p.name;
     playerSel.appendChild(opt);
   }
+  const ensurePickLockBanner = ()=>{
+    if(lockMsg || !controlsWrap) return lockMsg;
+    lockMsg = document.createElement('div');
+    lockMsg.id = 'pickLockBanner';
+    lockMsg.style.cssText = 'margin:.5rem 0;padding:.5rem .75rem;border-radius:8px;background:#fff4cc;border:1px solid #ffd66b;font:500 13px system-ui;color:#614300;';
+    controlsWrap.after(lockMsg);
+    return lockMsg;
+  };
+  const updateLockState = ()=>{
+    const locked = isWeekLocked(weekSel.value);
+    const msg = 'Week 4+ picks unlock Tue 12:01 AM ET.';
+    Array.from(weekSel.options).forEach(opt=>{
+      const optLocked = isWeekLocked(opt.value);
+      opt.classList.toggle('is-locked', optLocked);
+      opt.title = optLocked ? 'Locked until Tue 12:01 AM ET' : '';
+    });
+    if(controlsWrap) controlsWrap.style.opacity = locked ? 0.55 : 1;
+    teamSel.disabled = locked;
+    teamSel.classList.toggle('is-locked', locked);
+    weekSel.classList.toggle('is-locked', locked);
+    if(saveBtn){
+      saveBtn.disabled = locked;
+      saveBtn.classList.toggle('is-locked', locked);
+      saveBtn.title = locked ? msg : '';
+    }
+    teamSel.title = locked ? msg : '';
+    if(tilesWrap){
+      tilesWrap.style.opacity = locked ? 0.4 : '';
+      tilesWrap.style.pointerEvents = locked ? 'none' : '';
+    }
+    const banner = ensurePickLockBanner();
+    if(banner){
+      if(locked){
+        const unlockAt = nextTuesdayAt0001ET();
+        const fmt = unlockAt.toLocaleString('en-US', { timeZone:'America/New_York', hour:'numeric', minute:'2-digit', weekday:'short', month:'short', day:'numeric' });
+        banner.textContent = `Week ${LOCKED_MAX_WEEK+1}+ picks unlock Tue 12:01 AM ET (${fmt}).`;
+        banner.style.display = '';
+      }else{
+        banner.style.display = 'none';
+      }
+    }
+  };
+  window.updatePickLockState = updateLockState;
   const refreshTeams = ()=>{
     const w = weekSel.value; const name = playerSel.value;
     const avail = availableForWeek(state.data.picks, name, w);
     teamSel.innerHTML = "";
     avail.forEach(c=>{ const opt = document.createElement("option"); opt.value=c; opt.textContent=TEAM_NAME[c]; teamSel.appendChild(opt); });
-    const tiles = document.getElementById("availabilityTiles");
-    tiles.innerHTML = NFL.map(code=>{
-      const used = usedTeamsBeforeWeek(state.data.picks, name, w).includes(code);
-      const inPool = isTG(w)? TG_BF.includes(code) : isXMAS(w)? XMAS.includes(code) : true;
-      return `<div class="tile ${used||!inPool?'used':''}">${cellLogo(code,true)}${TEAM_NAME[code]}</div>`;
-    }).join("");
+    const tiles = tilesWrap || document.getElementById("availabilityTiles");
+    if(tiles){
+      tiles.innerHTML = NFL.map(code=>{
+        const used = usedTeamsBeforeWeek(state.data.picks, name, w).includes(code);
+        const inPool = isTG(w)? TG_BF.includes(code) : isXMAS(w)? XMAS.includes(code) : true;
+        return `<div class="tile ${used||!inPool?'used':''}">${cellLogo(code,true)}${TEAM_NAME[code]}</div>`;
+      }).join("");
+    }
+    updateLockState();
   };
-  weekSel.onchange = refreshTeams; playerSel.onchange = refreshTeams; refreshTeams();
+  weekSel.onchange = refreshTeams;
+  playerSel.onchange = refreshTeams;
+  refreshTeams();
 
-  document.getElementById("savePick").onclick = ()=>{
+  if(saveBtn){
+    saveBtn.onclick = ()=>{
+      if(isWeekLocked(weekSel.value)){
+        alert('Week 4+ picks unlock Tue 12:01 AM ET.');
+        return;
+      }
     const w = isNaN(Number(weekSel.value)) ? weekSel.value : Number(weekSel.value);
     const name = playerSel.value; const team = teamSel.value;
     if(!team){ alert("No team available for that entry/week."); return; }
     if(state.data.picks.find(p=>String(p.week)===String(w) && p.player===name)){ alert("This entry already has a pick for that week."); return; }
     state.data.picks.push({week:w, player:name, team, result:"P"});
     saveData(state.data); sessionStorage.clear(); renderAll();
-  };
+    };
+  }
 }
 
 /* ===== Week controls & init ===== */
 function renderWeekSelects(){
-  const sel = document.getElementById("weekSelect"); sel.innerHTML = "";
+  const sel = document.getElementById("weekSelect");
+  if(!sel) return;
+  sel.innerHTML = "";
   for(const w of weekOrder()){
     const opt = document.createElement("option"); opt.value = w; opt.textContent = wLabel(w);
     if(String(w)===String(state.data.meta.currentWeek)) opt.selected = true;
     sel.appendChild(opt);
   }
-  sel.onchange = ()=>{ state.data.meta.currentWeek = isNaN(Number(sel.value))? sel.value : Number(sel.value); saveData(state.data); renderAll(); };
-  document.getElementById("advanceWeek").onclick = ()=>{
-    const order = weekOrder(); const idx = order.indexOf(String(state.data.meta.currentWeek));
-    state.data.meta.currentWeek = order[Math.min(order.length-1, idx+1)]; saveData(state.data); renderAll();
+  sel.onchange = ()=>{
+    state.data.meta.currentWeek = isNaN(Number(sel.value))? sel.value : Number(sel.value);
+    saveData(state.data);
+    renderAll();
   };
+  const advBtn = document.getElementById("advanceWeek");
+  if(advBtn){
+    advBtn.onclick = ()=>{
+      const order = weekOrder();
+      const idx = order.indexOf(String(state.data.meta.currentWeek));
+      const rawNext = order[Math.min(order.length-1, idx+1)];
+      state.data.meta.currentWeek = isNaN(Number(rawNext))? rawNext : Number(rawNext);
+      saveData(state.data);
+      renderAll();
+    };
+  }
 }
 
 function renderAll(){
@@ -1537,34 +1995,10 @@ function initTabs(){
   });
 }
 
-function initLinesEditor(){
-  const editor = document.getElementById("linesEditor");
-  const apply = document.getElementById("applyLines");
-  const reset = document.getElementById("resetLines");
-  if(!editor || !apply || !reset) return;
-  editor.value = Object.keys(NFL_LINES||{}).length ? JSON.stringify(NFL_LINES, null, 2) : "";
-  apply.addEventListener("click",()=>{
-    try{
-      const raw = editor.value.trim();
-      NFL_LINES = raw ? JSON.parse(raw) : {};
-      saveLines(NFL_LINES);
-      editor.value = raw ? JSON.stringify(NFL_LINES, null, 2) : "";
-      renderHedge();
-      alert("Lines saved.");
-    }catch(e){ alert("Invalid JSON: "+ e.message); }
-  });
-  reset.addEventListener("click",()=>{
-    NFL_LINES = {};
-    saveLines(NFL_LINES);
-    editor.value = "";
-    renderHedge();
-  });
-}
-
 document.addEventListener("DOMContentLoaded", ()=>{
   initTabs();
   bindHedgeCalcInputs();
-  initLinesEditor();
+  initStandaloneHedgeCalc();
   showTab("overview");
   renderAll();
   lockFutureWeeksUI();
