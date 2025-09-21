@@ -65,6 +65,15 @@ tr:last-child td{border-bottom:0}
 .avail-col h4{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips .chip{border-style:dashed}
+.root-card .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(255,255,255,.03)}
+.kpi .n{font-weight:700}
+.root-table{width:100%;border-collapse:collapse;margin-top:8px}
+.root-table th,.root-table td{padding:8px;border-bottom:1px solid var(--line)}
+.badge-good{color:var(--good)}
+.badge-bad{color:var(--bad)}
+.badge-warn{color:var(--warn)}
+.ifttt{margin-top:10px;border:1px dashed var(--line);border-radius:12px;padding:10px}
 </style>
 </head>
 <body>
@@ -150,6 +159,27 @@ tr:last-child td{border-bottom:0}
       </details>
     </section>
   </div>
+
+  <!-- Rooting Guide & IFTTT (leverage vs. field) -->
+  <section class="card root-card" id="rooting">
+    <div class="row">
+      <h2>Rooting Guide &amp; IFTTT</h2>
+      <span class="chip">Week <span id="root-week"></span></span>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="tiny muted">Group using chalk team</div><div class="n mono" id="kpi-chalk"></div></div>
+      <div class="kpi"><div class="tiny muted">Field on chalk</div><div class="n mono" id="kpi-field"></div></div>
+      <div class="kpi"><div class="tiny muted">If chalk loses → field out</div><div class="n mono badge-good" id="kpi-chalklose"></div></div>
+    </div>
+    <h3 style="margin-top:12px">Best Outcomes (Leverage)</h3>
+    <table class="root-table" id="root-table">
+      <thead><tr>
+        <th>Outcome</th><th class="mono">% Field Impact</th><th class="mono">Group Exposure</th><th>Why it helps</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="ifttt" id="ifttt"></div>
+  </section>
 
   <footer>© <span id="year"></span> DeadlineNoon — Survivor</footer>
 </div>
@@ -498,6 +528,139 @@ function renderSpecialStatus(){
   });
 }
 
+/* ===== Rooting Guide (Week 3 field data) ===== */
+const FIELD_W3 = {
+  SEA:6655, BUF:3362, TB:2033, GB:1817, ATL:1179, IND:714, KC:676, MIN:102, WAS:96,
+  SF:67, LAC:52, HOU:49, DAL:43, BAL:30, PIT:20, CHI:13, NE:11, JAX:9, LV:4,
+  CAR:3, TEN:2, LAR:2, NO:2, MIA:1, ARI:1, NOPICK:13
+};
+const FIELD_W3_TOTAL = Object.values(FIELD_W3).reduce((sum,val)=>sum+val,0);
+
+function groupWeekExposure(week){
+  const exp = {};
+  for(const pick of state.data.picks){
+    if(String(pick.week)!==String(week)) continue;
+    exp[pick.team] = (exp[pick.team]||0)+1;
+  }
+  return exp;
+}
+
+function leverageList(week){
+  const field = week===3 ? FIELD_W3 : null;
+  if(!field) return [];
+  const totalField = FIELD_W3_TOTAL;
+  const group = groupWeekExposure(week);
+  const rows = [];
+  Object.keys(field).forEach(team=>{
+    if(team === "NOPICK") return;
+    const fieldCount = field[team];
+    const fieldPct = fieldCount / totalField;
+    const groupCount = group[team] || 0;
+    rows.push({
+      outcome: `${TEAM_NAME[team]} lose`,
+      fieldImpact: fieldPct,
+      groupExposure: groupCount,
+      why: groupCount===0 ? "We faded this chalk — full leverage" : "Field loses big; we drop some too"
+    });
+    rows.push({
+      outcome: `${TEAM_NAME[team]} win`,
+      fieldImpact: -fieldPct,
+      groupExposure: groupCount,
+      why: groupCount>0 ? "We stay alive with the crowd; low leverage" : "Field keeps equity while we still chase"
+    });
+  });
+  rows.sort((a,b)=>b.fieldImpact - a.fieldImpact);
+  return rows.slice(0,6);
+}
+
+function renderRooting(){
+  const w = state.data.meta.currentWeek;
+  const weekLabel = wLabel(w);
+  const weekNode = document.getElementById("root-week");
+  if(weekNode) weekNode.textContent = weekLabel;
+
+  const field = w===3 ? FIELD_W3 : null;
+  const groupExp = groupWeekExposure(w);
+  const groupSize = state.data.players.length || 0;
+
+  let chalkTeam = null;
+  if(field){
+    for(const [team,count] of Object.entries(field)){
+      if(team === "NOPICK") continue;
+      if(chalkTeam===null || count > field[chalkTeam]) chalkTeam = team;
+    }
+  }
+
+  const chalkGroupCount = chalkTeam ? (groupExp[chalkTeam]||0) : 0;
+  const chalkFieldPct = chalkTeam && field ? field[chalkTeam] / FIELD_W3_TOTAL : 0;
+
+  const chalkNode = document.getElementById("kpi-chalk");
+  const fieldNode = document.getElementById("kpi-field");
+  const chalkLoseNode = document.getElementById("kpi-chalklose");
+  if(chalkNode) chalkNode.textContent = chalkTeam ? `${chalkGroupCount}/${groupSize} on ${TEAM_NAME[chalkTeam]}` : "n/a";
+  if(fieldNode) fieldNode.textContent = chalkTeam ? `${TEAM_NAME[chalkTeam]} — ${(chalkFieldPct*100).toFixed(1)}%` : "n/a";
+  if(chalkLoseNode) chalkLoseNode.textContent = chalkTeam ? `${(chalkFieldPct*100).toFixed(1)}%` : "n/a";
+
+  const tbody = document.querySelector("#root-table tbody");
+  if(tbody){
+    tbody.innerHTML = "";
+    leverageList(w).forEach(row=>{
+      const pct = (row.fieldImpact*100).toFixed(1);
+      const pctNum = parseFloat(pct);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.outcome}</td>
+        <td class="mono ${pctNum>0?'badge-good':pctNum<0?'badge-bad':''}">${pctNum>0?'+':''}${pct}</td>
+        <td class="mono">${row.groupExposure||0}</td>
+        <td class="tiny muted">${row.why}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  const panel = document.getElementById("ifttt");
+  if(panel){
+    if(!field){
+      panel.innerHTML = `<span class="muted tiny">No field data loaded for ${weekLabel} yet.</span>`;
+    }else{
+      const lines = [];
+      if(chalkTeam){
+        lines.push(`IF <strong>${TEAM_NAME[chalkTeam]}</strong> <span class="badge-bad">lose</span> THEN <span class="badge-good">${(chalkFieldPct*100).toFixed(0)}%</span> of field drops ${chalkGroupCount?`(we lose ${chalkGroupCount}).`:`(we lose 0).`}`);
+      }
+      let maxEntryTeam = null;
+      let maxEntryCount = -1;
+      for(const [team,count] of Object.entries(groupExp)){
+        if(count > maxEntryCount){
+          maxEntryCount = count;
+          maxEntryTeam = team;
+        }
+      }
+      if(maxEntryTeam){
+        const fieldPct = field[maxEntryTeam]? (field[maxEntryTeam]/FIELD_W3_TOTAL)*100 : 0;
+        lines.push(`IF <strong>${TEAM_NAME[maxEntryTeam]}</strong> <span class="badge-bad">lose</span> THEN <strong>${maxEntryCount}</strong> of our entries out (field hit ~${fieldPct.toFixed(0)}%).`);
+      }
+      let bestFadeTeam = null;
+      let bestFadePct = -1;
+      if(field){
+        for(const [team,count] of Object.entries(field)){
+          if(team === "NOPICK") continue;
+          if((groupExp[team]||0)===0){
+            const pct = count / FIELD_W3_TOTAL;
+            if(pct > bestFadePct){
+              bestFadePct = pct;
+              bestFadeTeam = team;
+            }
+          }
+        }
+      }
+      if(bestFadeTeam){
+        lines.push(`IF <strong>${TEAM_NAME[bestFadeTeam]}</strong> <span class="badge-bad">lose</span> THEN max leverage for us (0 group risk; field -${(bestFadePct*100).toFixed(0)}%).`);
+      }
+      panel.innerHTML = lines.length? lines.map(line=>`<div class="tiny">${line}</div>`).join("") : `<span class="muted tiny">No leverage scenarios available.</span>`;
+    }
+  }
+}
+
 function cssSafe(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-"); }
 function htmlSafe(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
 
@@ -565,6 +728,7 @@ function renderAll(){
   const fallback = state.data.players.find(p=>p.name===state.specialFocus)?.name || state.data.players[0]?.name || "";
   if(fallback) setSpecialFocus(fallback);
   renderSpecialGames();
+  renderRooting();
   renderPickSelectors();
   document.getElementById("dataEditor").value = JSON.stringify(state.data, null, 2);
   thresholdAlerts();
