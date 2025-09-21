@@ -231,7 +231,8 @@ function thresholdAlerts(){
 }
 
 /* ===== UI Render ===== */
-const state = { data: loadData() };
+window.state = window.state || { data: loadData() };
+const state = window.state;
 function cellLogo(code,big=false){ return `<img class="${big?'logo-lg':'logo'}" alt="${TEAM_NAME[code]}" src="${logo(code)}">`; }
 
 function renderHeader(){
