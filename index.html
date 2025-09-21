@@ -64,6 +64,7 @@ tr:last-child td{border-bottom:0}
 .hidden{display:none}
 .warn{color:var(--warn)}
 .note{font-size:12px;color:var(--muted)}
+.is-locked{opacity:.3}
 /* Tabs */
 .tabs{display:flex;gap:8px;margin:0 0 12px}
 .tabbtn{border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.03);cursor:pointer;color:var(--ink)}
@@ -115,6 +116,8 @@ tr:last-child td{border-bottom:0}
 .hc-matchup{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .hc-matchup .hc-team{display:flex;align-items:center;gap:6px;font-weight:600}
 .hc-matchup .hc-vs{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.is-locked{opacity:.45}
+#hedgeWeek option.is-locked{color:#888}
 .btn{appearance:none;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;font:inherit}
 .btn:focus{outline:2px solid var(--accent)}
 .btn-primary{background:var(--accent);color:#fff}
@@ -321,7 +324,7 @@ tr:last-child td{border-bottom:0}
 
           <div id="hcExplain" class="explain">
             <div class="headline">Your hedge plan</div>
-            <div id="hcSummary" class="mono"></div>
+            <div id="hcSummary"></div>
             <div id="hcWhy" class="callout tiny"></div>
             <div class="sub">Tip: adjust Stake, Target floor, or click a button above to auto-calc a stake.</div>
           </div>
@@ -335,13 +338,13 @@ tr:last-child td{border-bottom:0}
   </section>
 
   <!-- Week Lines (American ML) editor -->
-  <section class="card" style="margin-top:12px">
+  <section class="card" id="weekLinesEditor" style="margin-top:12px">
     <div class="row">
       <h2>Week Lines (American ML)</h2>
       <span class="chip">Paste current week moneylines as JSON</span>
     </div>
     <div class="tiny muted" style="margin:6px 0 8px">
-      Schema: { "3": { "IND@TEN": {"home":"TEN","away":"IND","ml":{"IND":+140,"TEN":-165}} } } • Paste your latest numbers any time.
+      Example schema (Week 3): { "3": { "BUF@MIA": {"home":"MIA","away":"BUF","ml":{"BUF":-135,"MIA":115}}, "KC@LAC": { ... } } }
     </div>
     <textarea id="linesEditor" rows="8" spellcheck="false" style="width:100%"></textarea>
     <div class="row" style="margin-top:8px">
@@ -492,6 +495,94 @@ function availableForWeek(picks, player, week){ const prior=usedTeamsBeforeWeek(
 function entryStatus(picks, player, week){ const up=picks.filter(p=>p.player===player && cmpWeek(p.week, week)<=0).sort((a,b)=>cmpWeek(a.week,b.week)); for(const p of up){ if(p.result==="L") return {eliminated:true, reason:`Loss in ${wLabel(p.week)} (${TEAM_NAME[p.team]})`}; if(p.result==="T") return {eliminated:true, reason:`Tie in ${wLabel(p.week)} (ties = loss)`}; } return {eliminated:false, reason:""}; }
 function specialUsage(used){ return {tg:used.filter(t=>TG_BF.includes(t)).length, xm:used.filter(t=>XMAS.includes(t)).length}; }
 
+/* ===== Hedge Week Locking (Tue 12:01 ET unlock) ===== */
+const LOCKED_MAX_WEEK = 3;
+const UNLOCK_DOW = 2; // Tuesday (0=Sun)
+const UNLOCK_HOUR = 0;
+const UNLOCK_MIN = 1;
+
+function easternNow(){
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+}
+
+function nextTuesdayAt0001ET(from = easternNow()){
+  const d = new Date(from);
+  const day = d.getDay();
+  let add = (UNLOCK_DOW - day + 7) % 7;
+  if(add === 0 && (d.getHours() > UNLOCK_HOUR || (d.getHours() === UNLOCK_HOUR && d.getMinutes() >= UNLOCK_MIN))){
+    add = 7;
+  }
+  d.setDate(d.getDate() + add);
+  d.setHours(UNLOCK_HOUR, UNLOCK_MIN, 0, 0);
+  return d;
+}
+
+function isUnlockedBeyond3(){
+  const now = easternNow();
+  const unlock = new Date(now);
+  const day = unlock.getDay();
+  const delta = (UNLOCK_DOW - day + 7) % 7;
+  unlock.setDate(unlock.getDate() + delta);
+  unlock.setHours(UNLOCK_HOUR, UNLOCK_MIN, 0, 0);
+  return now >= unlock;
+}
+
+function clampWeekValue(wk){
+  if(!isUnlockedBeyond3() && Number(wk) > LOCKED_MAX_WEEK) return LOCKED_MAX_WEEK;
+  return wk;
+}
+
+function lockFutureWeeksUI(){
+  const weekSel = document.getElementById('hedgeWeek');
+  if(!weekSel) return;
+
+  const unlocked = isUnlockedBeyond3();
+  Array.from(weekSel.options).forEach(opt=>{
+    const wk = Number(opt.value);
+    if(Number.isFinite(wk) && wk > LOCKED_MAX_WEEK){
+      opt.disabled = !unlocked;
+      if(!unlocked){
+        opt.title = 'Locked until Tue 12:01 AM ET';
+        opt.classList.add('is-locked');
+      }else{
+        opt.title = '';
+        opt.classList.remove('is-locked');
+      }
+    }
+  });
+
+  const cur = Number(weekSel.value);
+  if(!unlocked && cur > LOCKED_MAX_WEEK){
+    weekSel.value = String(LOCKED_MAX_WEEK);
+    if(typeof renderHedge === 'function') renderHedge();
+  }
+
+  let bar = document.getElementById('weekLockBanner');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'weekLockBanner';
+    bar.style.cssText = 'margin:.5rem 0;padding:.5rem .75rem;border-radius:8px;background:#fff4cc;border:1px solid #ffd66b;font:500 13px system-ui;color:#614300;';
+    const host = weekSel.closest('.row-gap') || weekSel.parentElement;
+    host?.appendChild(bar);
+  }
+
+  if(!unlocked){
+    const unlockAt = nextTuesdayAt0001ET();
+    const fmt = unlockAt.toLocaleString('en-US', { timeZone:'America/New_York', hour:'numeric', minute:'2-digit', weekday:'short', month:'short', day:'numeric' });
+    bar.textContent = `Weeks ${LOCKED_MAX_WEEK+1}+ unlock Tue 12:01 AM ET (${fmt}).`;
+    bar.style.display = '';
+  }else{
+    bar.style.display = 'none';
+  }
+}
+
+function setWeekSafely(wk){
+  const weekSel = document.getElementById('hedgeWeek');
+  const clamped = clampWeekValue(Number(wk));
+  if(weekSel) weekSel.value = String(clamped);
+  if(typeof renderHedge === 'function') renderHedge();
+}
+
 /* ===== Alerts ===== */
 function thresholdAlerts(){
   const w = state.data.meta.currentWeek;
@@ -517,28 +608,18 @@ function cellLogo(code,big=false){ return `<img class="${big?'logo-lg':'logo'}" 
 
 /* ===== Lines Storage (American ML) ===== */
 const LS_LINES = "dn_lines_v1";
-const LINES_SEED_W3 = {
-  "IND@TEN": { home: "TEN", away: "IND", ml: { "IND": 140, "TEN": -165 } },
-  "GB@DET":  { home: "DET", away: "GB",  ml: { "GB": 120, "DET": -140 } },
-  "KC@DAL":  { home: "DAL", away: "KC",  ml: { "KC": -130, "DAL": 110 } },
-  "CIN@BAL": { home: "BAL", away: "CIN", ml: { "CIN": 145, "BAL": -170 } },
-  "CHI@PHI": { home: "PHI", away: "CHI", ml: { "CHI": 200, "PHI": -240 } },
-  "BUF@MIA": { home: "MIA", away: "BUF", ml: { "BUF": -135, "MIA": 115 } },
-  "LAR@SEA": { home: "SEA", away: "LAR", ml: { "LAR": 155, "SEA": -180 } },
-  "DET@BAL": { home: "BAL", away: "DET", ml: { "DET": 165, "BAL": -195 } }
+const LINES_DEFAULT = {
+  "3": {
+    "BUF@MIA": { home: "MIA", away: "BUF", ml: { "BUF": -135, "MIA": 115 } },
+    "KC@LAC":  { home: "LAC", away: "KC",  ml: { "KC": -180, "LAC": 150 } }
+  }
 };
-const LINES_DEFAULT = { "3": JSON.parse(JSON.stringify(LINES_SEED_W3)) };
 function loadLines(){
-  let parsed = null;
   try{
     const raw = localStorage.getItem(LS_LINES);
-    if(raw) parsed = JSON.parse(raw);
+    if(raw) return JSON.parse(raw);
   }catch{}
-  const base = parsed ? parsed : JSON.parse(JSON.stringify(LINES_DEFAULT));
-  if(!base["3"]){
-    base["3"] = JSON.parse(JSON.stringify(LINES_SEED_W3));
-  }
-  return base;
+  return JSON.parse(JSON.stringify(LINES_DEFAULT));
 }
 function saveLines(obj){ localStorage.setItem(LS_LINES, JSON.stringify(obj)); }
 let NFL_LINES = loadLines();
@@ -889,9 +970,10 @@ function renderHedgeSelectors(){
     selW.appendChild(opt);
   });
 
-  const desiredWeek = state.hedgeWeek && Object.prototype.hasOwnProperty.call(state.data.meta.weekDates, state.hedgeWeek)
+  const desiredWeekRaw = state.hedgeWeek && Object.prototype.hasOwnProperty.call(state.data.meta.weekDates, state.hedgeWeek)
     ? state.hedgeWeek
     : String(state.data.meta.currentWeek);
+  const desiredWeek = clampWeekValue(desiredWeekRaw);
   selW.value = desiredWeek;
 
   const playerExists = state.data.players.some(p=>p.name===state.hedgePlayer);
@@ -899,7 +981,16 @@ function renderHedgeSelectors(){
   if(desiredPlayer) selP.value = desiredPlayer;
 
   selP.onchange = ()=>{ state.hedgePlayer = selP.value; renderHedge(); };
-  selW.onchange = ()=>{ state.hedgeWeek = selW.value; renderHedge(); };
+  selW.onchange = ()=>{
+    const raw = Number(selW.value);
+    const clamped = clampWeekValue(raw);
+    if(clamped !== raw){ selW.value = String(clamped); }
+    state.hedgeWeek = selW.value;
+    renderHedge();
+    lockFutureWeeksUI();
+  };
+
+  lockFutureWeeksUI();
 }
 
 function prettyPickRow(p){
@@ -968,11 +1059,23 @@ function renderHedge(){
     }
   }
 
+  const explain = document.getElementById("hcExplain");
+  if(explain){
+    if(current){
+      explain.dataset.myTeam = current.team;
+      explain.dataset.oppTeam = opponentInfo?.team || "";
+    }else{
+      delete explain.dataset.myTeam;
+      delete explain.dataset.oppTeam;
+    }
+  }
+
   const fallbackMl = amerEl && amerEl.value!=="" ? Number(amerEl.value) : null;
   const displayML = opponentInfo?.ml ?? fallbackMl;
   let badgeHTML = "—";
 
   if(current){
+    const myLogo = cellLogo(current.team);
     if(String(week)==="3"){
       const status = FIELD_RESULTS_W3[current.team];
       const cnt = (FIELD_W3 && FIELD_W3[current.team])||0;
@@ -981,17 +1084,23 @@ function renderHedge(){
         return sum + count;
       },0) || 1;
       if(status==='W'){
-        badgeHTML = `${cellLogo(current.team)}${TEAM_NAME[current.team]} ✓ already won${displayML!==null?` • Opp ML: ${fmtML(displayML)}`:""}`;
+        badgeHTML = `${myLogo}${TEAM_NAME[current.team]} ✓ already won`;
       }else{
         const fieldPct = Math.round((cnt/activeTotal)*1000)/10;
-        badgeHTML = `${cellLogo(current.team)}${TEAM_NAME[current.team]} field: ${fieldPct}%${displayML!==null?` • Opp ML: ${fmtML(displayML)}`:""}`;
+        badgeHTML = `${myLogo}${TEAM_NAME[current.team]} field: ${fieldPct}%`;
       }
-    }else if(opponentInfo && displayML!==null){
-      badgeHTML = `${cellLogo(opponentInfo.team)}${TEAM_NAME[opponentInfo.team]} • Opp ML: ${fmtML(displayML)}`;
+      if(displayML!==null && opponentInfo){
+        badgeHTML += ` • ${cellLogo(opponentInfo.team)}${TEAM_NAME[opponentInfo.team]} ${fmtML(displayML)}`;
+      }
+    }else if(opponentInfo){
+      badgeHTML = `${myLogo}${TEAM_NAME[current.team]} vs ${cellLogo(opponentInfo.team)}${TEAM_NAME[opponentInfo.team]}`;
+      if(displayML!==null){
+        badgeHTML += ` • Opp ML: ${fmtML(displayML)}`;
+      }
     }else if(displayML!==null){
-      badgeHTML = `Opp ML: ${fmtML(displayML)}`;
+      badgeHTML = `${myLogo}${TEAM_NAME[current.team]} • Opp ML: ${fmtML(displayML)}`;
     }else{
-      badgeHTML = `${TEAM_NAME[current.team]} (opponent ML pending)`;
+      badgeHTML = `${myLogo}${TEAM_NAME[current.team]} (opponent ML pending)`;
     }
   }
 
@@ -1012,6 +1121,7 @@ function renderHedgeCalc(){
   const tbody = document.querySelector("#hcTable tbody");
   const sumEl = document.getElementById("hcSummary");
   const whyEl = document.getElementById("hcWhy");
+  const explain = document.getElementById("hcExplain");
   if(!stakeEl || !pEl || !tbody) return;
 
   const decimal = Math.max(1.01, decimalsFromAmerican(amerEl?.value) || 2.20);
@@ -1081,14 +1191,19 @@ function renderHedgeCalc(){
   const floorAfterBuy = floorBeforeBuy - buyIn;
 
   if(sumEl){
+    const myTeam = explain?.dataset.myTeam || "";
+    const oppTeam = explain?.dataset.oppTeam || "";
+    const myLogo = myTeam ? cellLogo(myTeam,true) : "";
+    const oppLogo = oppTeam ? cellLogo(oppTeam,true) : "";
+
     if(stake <= 0){
-      sumEl.textContent = "Stake is $0 — no hedge in place yet.";
+      sumEl.innerHTML = `${myTeam?myLogo:""}<span>Stake is $0 — no hedge in place yet.</span>`;
     }else if(ml===null || Number.isNaN(ml)){
-      sumEl.innerHTML = `Wager <strong>$${stake.toFixed(2)}</strong>. Add an opponent ML to see exact payouts. Floor before buy-in: <strong>$${floorBeforeBuy.toFixed(2)}</strong>.`;
+      sumEl.innerHTML = `${myLogo}${oppLogo}<span>Wager <strong>$${stake.toFixed(2)}</strong>. Add an opponent ML to see exact payouts. Floor before buy-in: <strong>$${floorBeforeBuy.toFixed(2)}</strong>.</span>`;
     }else if(payout!==null){
-      sumEl.innerHTML = `Wager <strong>$${stake.toFixed(2)}</strong> on <strong>${fmtML(ml)}</strong>. If your pick loses you receive <strong>$${totalReturn.toFixed(2)}</strong> (profit +$${payout.toFixed(2)}); if it wins you drop <strong>$${stake.toFixed(2)}</strong>. Floor before buy-in ≈ <strong>$${floorBeforeBuy.toFixed(2)}</strong> (${floorAfterBuy >=0?"after-buy-in floor":"after-buy-in shortfall"} ${floorAfterBuy>=0?"+":"-"}$${Math.abs(floorAfterBuy).toFixed(2)}).`;
+      sumEl.innerHTML = `${myLogo}${oppLogo}<span>Wager <strong>$${stake.toFixed(2)}</strong> on <strong>${fmtML(ml)}</strong>. If your pick loses you receive <strong>$${totalReturn.toFixed(2)}</strong> (profit +$${payout.toFixed(2)}); if it wins you drop <strong>$${stake.toFixed(2)}</strong>. Floor before buy-in ≈ <strong>$${floorBeforeBuy.toFixed(2)}</strong> (${floorAfterBuy >=0?"after-buy-in floor":"after-buy-in shortfall"} ${floorAfterBuy>=0?"+":"-"}$${Math.abs(floorAfterBuy).toFixed(2)}).</span>`;
     }else{
-      sumEl.textContent = `Wager $${stake.toFixed(2)} at the opponent ML. Floor before buy-in: $${floorBeforeBuy.toFixed(2)}.`;
+      sumEl.innerHTML = `${myLogo}${oppLogo}<span>Wager $${stake.toFixed(2)} at the opponent ML. Floor before buy-in: $${floorBeforeBuy.toFixed(2)}.</span>`;
     }
   }
 
@@ -1406,6 +1521,7 @@ function renderAll(){
   renderRooting();
   document.getElementById("dataEditor").value = JSON.stringify(state.data, null, 2);
   thresholdAlerts();
+  lockFutureWeeksUI();
 }
 function showTab(id){
   ["overview","rooting","hedge"].forEach(tab=>{
@@ -1451,6 +1567,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
   initLinesEditor();
   showTab("overview");
   renderAll();
+  lockFutureWeeksUI();
+  setInterval(lockFutureWeeksUI, 30000);
 });
 </script>
 </body>
