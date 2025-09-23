@@ -7,13 +7,6 @@
       "static/chunks/main-app-817fc6a26f4af8ea.js",
       "static/chunks/app/_not-found/page-f90348d49cb44673.js"
     ],
-    "/api/odds/route": [
-      "static/chunks/webpack-4a462cecab786e93.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-40634877ae3e8e9d.js",
-      "static/chunks/main-app-817fc6a26f4af8ea.js",
-      "static/chunks/app/api/odds/route-93fb4a40742aa0b0.js"
-    ],
     "/layout": [
       "static/chunks/webpack-4a462cecab786e93.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
@@ -22,6 +15,13 @@
       "static/css/fb4f17ec9d83e673.css",
       "static/chunks/app/layout-904f18fd3811c575.js"
     ],
+    "/api/odds/route": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-40634877ae3e8e9d.js",
+      "static/chunks/main-app-817fc6a26f4af8ea.js",
+      "static/chunks/app/api/odds/route-93fb4a40742aa0b0.js"
+    ],
     "/make-picks/page": [
       "static/chunks/webpack-4a462cecab786e93.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
@@ -29,19 +29,19 @@
       "static/chunks/main-app-817fc6a26f4af8ea.js",
       "static/chunks/app/make-picks/page-444c8a6faae45d6f.js"
     ],
-    "/admin/page": [
-      "static/chunks/webpack-4a462cecab786e93.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-40634877ae3e8e9d.js",
-      "static/chunks/main-app-817fc6a26f4af8ea.js",
-      "static/chunks/app/admin/page-93fb4a40742aa0b0.js"
-    ],
     "/page": [
       "static/chunks/webpack-4a462cecab786e93.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-40634877ae3e8e9d.js",
       "static/chunks/main-app-817fc6a26f4af8ea.js",
       "static/chunks/app/page-93fb4a40742aa0b0.js"
+    ],
+    "/admin/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-40634877ae3e8e9d.js",
+      "static/chunks/main-app-817fc6a26f4af8ea.js",
+      "static/chunks/app/admin/page-93fb4a40742aa0b0.js"
     ]
   }
 }

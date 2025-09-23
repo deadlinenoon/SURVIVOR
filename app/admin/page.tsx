@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';
+
 export default function Admin() {
   return (
     <main
