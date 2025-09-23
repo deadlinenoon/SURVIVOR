@@ -4,9 +4,22 @@
   "private": true,
   "scripts": {
     "clean": "rimraf dist .cache || true",
-    "build:prod": "rm -rf dist && mkdir -p dist && rsync -a --exclude 'dist' --exclude '.git' --exclude 'node_modules' . dist/"
+    "build:prod": "rm -rf dist && mkdir -p dist && find . -mindepth 1 -maxdepth 1 ! -name dist ! -name node_modules ! -name .git ! -name .vercel -exec cp -R {} dist/ \\;",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5"
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.5.0",
+    "next": "^15.5.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

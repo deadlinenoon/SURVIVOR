@@ -2,18 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>DeadlineNoon — Survivor</title>
+<title>DeadlineNoon — SuperContest Survivor</title>
+<link rel="icon" type="image/svg+xml" href="logo-supercontest.svg" />
 <style>
 :root{--bg:#0f1115;--panel:#151826;--ink:#e7e9ee;--muted:#9aa3b2;--accent:#7c5cff;--line:#262a3b;--good:#2ecc71;--bad:#ff6b6b;--warn:#f1c40f;--info:#4da3ff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 .wrap{max-width:1300px;margin:0 auto;padding:24px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
-.home-logo{display:flex;align-items:center;gap:16px;text-decoration:none;color:inherit}
-.home-logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:18px}
-.brand-stack{display:flex;flex-direction:column;gap:4px}
-.logo-video{display:block;width:72px;height:72px;border-radius:16px;object-fit:cover;flex-shrink:0;box-shadow:0 10px 25px rgba(0,0,0,.35);background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.15), transparent 55%), rgba(255,255,255,.04)}
-.logo-video::-webkit-media-controls{display:none !important}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.home-link{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:inherit;text-decoration:none;font-weight:600;font-size:13px}
+.home-link:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.brand-stack{display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px}
+.logo-wrap{display:flex;align-items:center;gap:8px}
+.home-logo-media{display:block;width:108px;height:72px;border-radius:16px;object-fit:contain;box-shadow:0 10px 25px rgba(0,0,0,.35);background:#ffffff;padding:6px}
+.meta-pills{display:flex;flex-wrap:wrap;gap:8px}
+.meta-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(124,92,255,.25),rgba(124,92,255,.05));box-shadow:0 4px 12px rgba(0,0,0,.25);font-size:13px;color:var(--ink)}
+.meta-pill .count{font-weight:700;font-size:15px}
+.meta-pill .slash{opacity:.65;font-weight:600}
+.meta-pill .label{font-size:12px;color:var(--muted)}
 .implied-banner{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;margin:0 0 16px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03);font:600 14px/1.2 system-ui;letter-spacing:.2px;color:var(--muted)}
+.status-grid{display:grid;gap:12px;margin:0 0 16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.status-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(255,255,255,.03)}
+.status-card .label{font-size:12px;text-transform:uppercase;letter-spacing:.35px;color:var(--muted)}
+.status-card .value{font-weight:700;font-size:22px;margin-top:4px}
+.status-card .note{margin-top:6px;font-size:12px;color:var(--muted)}
+.rooting-panel{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px;background:rgba(255,255,255,.03);display:flex;flex-direction:column;gap:6px}
+.rooting-panel .rooting-title{font-size:12px;text-transform:uppercase;letter-spacing:.35px;color:var(--muted);font-weight:600}
+.rooting-panel .rooting-game{font-weight:600}
+.rooting-panel .rooting-note{font-size:12px;color:var(--muted)}
+.rooting-panel .rooting-action{font-size:13px;line-height:1.5}
 .result-symbol{display:inline-block;margin-left:6px;font-weight:600}
 .result-symbol.result-win{color:var(--good)}
 .result-symbol.result-loss{color:var(--bad)}
@@ -158,21 +174,29 @@ tr:last-child td{border-bottom:0}
 <body id="top">
 <div class="wrap">
   <header>
-    <a class="home-logo" href="#top" aria-label="DeadlineNoon home">
-      <video class="logo-video" src="logo.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
-        <source src="logo.mp4" type="video/mp4"/>
-        DeadlineNoon
-      </video>
-      <div class="brand-stack">
-        <div class="badge">Week <span id="hdr-week"></span> • <span id="hdr-date"></span></div>
-        <div class="brand">Deadline<span class="accent">Noon</span> — Survivor</div>
-        <div class="sub">9 contestants • <span id="activeHeadline">9 active</span> • ties = loss • special weeks • 40% special-usage alerts • real logos</div>
+    <a class="home-link" href="#top" aria-label="Back to top">Home</a>
+    <div class="brand-stack">
+      <div class="badge">Week <span id="hdr-week"></span> • <span id="hdr-date"></span></div>
+      <div class="brand">Deadline<span class="accent">Noon</span> — SuperContest Survivor</div>
+      <div class="meta-pills">
+        <div class="meta-pill" id="activeHeadline">—</div>
       </div>
-    </a>
-    <div class="badge mono" id="env-badge"></div>
+    </div>
+    <div class="logo-wrap">
+      <div class="badge mono" id="env-badge"></div>
+      <img src="logo-supercontest.svg" alt="Westgate Las Vegas SuperContest Survivor" class="home-logo-media" />
+    </div>
   </header>
 
   <div class="implied-banner" id="impliedBanner"></div>
+
+  <div class="status-grid" id="status-cards">
+    <div class="status-card" id="prize-pool">
+      <div class="label">Prize Pool</div>
+      <div class="value mono">—</div>
+      <div class="note">Live entries: <span id="live-entries">—</span></div>
+    </div>
+  </div>
 
   <!-- Tabs -->
   <div class="tabs">
@@ -261,6 +285,7 @@ tr:last-child td{border-bottom:0}
         <summary><strong>Data (read-only seed below; your edits persist locally)</strong></summary>
         <textarea id="dataEditor" rows="12" spellcheck="false" style="width:100%"></textarea>
       </details>
+
     </section>
   </div>
   </div><!-- /tab-overview -->
@@ -276,6 +301,9 @@ tr:last-child td{border-bottom:0}
       <div class="kpi"><div class="tiny muted">Group using chalk team</div><div class="n mono" id="kpi-chalk"></div></div>
       <div class="kpi"><div class="tiny muted">Field on chalk</div><div class="n mono" id="kpi-field"></div></div>
       <div class="kpi"><div class="tiny muted">If chalk loses → field out</div><div class="n mono badge-good" id="kpi-chalklose"></div></div>
+    </div>
+    <div class="rooting-panel" id="rooting-panel">
+      <div class="tiny muted">Rooting update loads here.</div>
     </div>
     <h3 style="margin-top:12px">Best Outcomes (Leverage)</h3>
     <table class="root-table" id="root-table">
@@ -609,8 +637,32 @@ const XMAS_MATCHUP_TAG = {
   KC:"DEN@KC"
 };
 
-const ENTRANTS = 18718;
-const TOTAL_POT = 18700000;
+const CONTEST_NAME = 'SuperContest Survivor';
+const INITIAL_ENTRIES = 111;
+const BUY_IN = 5000;
+const TOTAL_PRIZE_POOL = INITIAL_ENTRIES * BUY_IN; // $5,000 winner-take-all buy-in
+const CURRENT_LIVE_ENTRIES = 81; // updated after Week 3 results
+const ENTRIES_ON_CHALK_TONIGHT = 0;
+
+const USD0 = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 0,
+});
+
+function fmtUSD(value){
+  return USD0.format(value);
+}
+
+function impliedValueContext(){
+  const alive = Math.max(1, CURRENT_LIVE_ENTRIES);
+  const survivorsIfLose = Math.max(1, CURRENT_LIVE_ENTRIES - ENTRIES_ON_CHALK_TONIGHT);
+  const impliedNow = TOTAL_PRIZE_POOL / alive;
+  const impliedIfLose = TOTAL_PRIZE_POOL / survivorsIfLose;
+  const delta = impliedIfLose - impliedNow;
+  return { impliedNow, impliedIfLose, delta, survivorsIfLose };
+}
+
 
 /* ===== Seeded Data (W1–W3) ===== */
 /* Results: W=win, L=loss, T=tie, P=pending */
@@ -640,36 +692,36 @@ const STARTER = {
   picks: [
     // Week 1 (per sheet)
     {week:1, player:"SlyBiz",               team:"ARI", result:"P"},
-    {week:1, player:"Cremaster Reflex 1",   team:"ARI", result:"P"},
-    {week:1, player:"Cremaster Reflex 2",   team:"DEN", result:"P"},
-    {week:1, player:"BulletProof Tiger 1",  team:"DEN", result:"P"},
-    {week:1, player:"BulletProof Tiger 2",  team:"DEN", result:"P"},
-    {week:1, player:"BulletProof Tiger 3",  team:"ARI", result:"P"},
-    {week:1, player:"ChiPhi 1",             team:"JAX", result:"P"},
-    {week:1, player:"Gambling Grocer-7",    team:"CIN", result:"P"},
-    {week:1, player:"Creamsicle Cabana",    team:"WAS", result:"P"},
+    {week:1, player:"Cremaster Reflex 1",   team:"ARI", result:"W"},
+    {week:1, player:"Cremaster Reflex 2",   team:"DEN", result:"W"},
+    {week:1, player:"BulletProof Tiger 1",  team:"DEN", result:"W"},
+    {week:1, player:"BulletProof Tiger 2",  team:"DEN", result:"W"},
+    {week:1, player:"BulletProof Tiger 3",  team:"ARI", result:"W"},
+    {week:1, player:"ChiPhi 1",             team:"JAX", result:"W"},
+    {week:1, player:"Gambling Grocer-7",    team:"CIN", result:"W"},
+    {week:1, player:"Creamsicle Cabana",    team:"WAS", result:"W"},
 
     // Week 2
     {week:2, player:"SlyBiz",               team:"DAL", result:"P"},
-    {week:2, player:"Cremaster Reflex 1",   team:"LAR", result:"P"},
-    {week:2, player:"Cremaster Reflex 2",   team:"ARI", result:"P"},
-    {week:2, player:"BulletProof Tiger 1",  team:"ARI", result:"P"},
-    {week:2, player:"BulletProof Tiger 2",  team:"BAL", result:"P"},
-    {week:2, player:"BulletProof Tiger 3",  team:"DAL", result:"P"},
-    {week:2, player:"ChiPhi 1",             team:"DET", result:"P"},
-    {week:2, player:"Gambling Grocer-7",    team:"DET", result:"P"},
-    {week:2, player:"Creamsicle Cabana",    team:"DAL", result:"P"},
+    {week:2, player:"Cremaster Reflex 1",   team:"LAR", result:"W"},
+    {week:2, player:"Cremaster Reflex 2",   team:"ARI", result:"W"},
+    {week:2, player:"BulletProof Tiger 1",  team:"ARI", result:"W"},
+    {week:2, player:"BulletProof Tiger 2",  team:"BAL", result:"W"},
+    {week:2, player:"BulletProof Tiger 3",  team:"DAL", result:"W"},
+    {week:2, player:"ChiPhi 1",             team:"DET", result:"W"},
+    {week:2, player:"Gambling Grocer-7",    team:"DET", result:"W"},
+    {week:2, player:"Creamsicle Cabana",    team:"DAL", result:"W"},
 
     // Week 3 (BUF = WIN Thu)
     {week:3, player:"SlyBiz",               team:"GB",  result:"L"},
-    {week:3, player:"Cremaster Reflex 1",   team:"SEA", result:"P"},
-    {week:3, player:"Cremaster Reflex 2",   team:"TB",  result:"P"},
-    {week:3, player:"BulletProof Tiger 1",  team:"KC",  result:"P"},
-    {week:3, player:"BulletProof Tiger 2",  team:"SEA", result:"P"},
+    {week:3, player:"Cremaster Reflex 1",   team:"SEA", result:"W"},
+    {week:3, player:"Cremaster Reflex 2",   team:"TB",  result:"W"},
+    {week:3, player:"BulletProof Tiger 1",  team:"KC",  result:"W"},
+    {week:3, player:"BulletProof Tiger 2",  team:"SEA", result:"W"},
     {week:3, player:"BulletProof Tiger 3",  team:"BUF", result:"W"},
-    {week:3, player:"ChiPhi 1",             team:"KC",  result:"P"},
-    {week:3, player:"Gambling Grocer-7",    team:"KC",  result:"P"},
-    {week:3, player:"Creamsicle Cabana",    team:"SEA", result:"P"}
+    {week:3, player:"ChiPhi 1",             team:"KC",  result:"W"},
+    {week:3, player:"Gambling Grocer-7",    team:"KC",  result:"W"},
+    {week:3, player:"Creamsicle Cabana",    team:"SEA", result:"W"}
   ]
 };
 
@@ -973,6 +1025,50 @@ function getOpponentML(week, myTeam){
 }
 const fmtML = ml => ml>0?`+${ml}`:String(ml);
 
+function updateImpliedCard(){
+  const { impliedNow } = impliedValueContext();
+  const card = document.getElementById("prize-pool");
+  if(!card) return;
+  const label = card.querySelector('.label') || card;
+  const value = card.querySelector('.value') || card;
+  if(label) label.textContent = 'Implied Value (per entry)';
+  if(value) value.textContent = fmtUSD(impliedNow);
+  const note = card.querySelector('.note');
+  if(note){
+    note.innerHTML = `Live entries: <span id="live-entries">${CURRENT_LIVE_ENTRIES.toLocaleString()}</span> • Buy-in ${fmtUSD(BUY_IN)}`;
+  }
+}
+
+function renderRootingCallout(impliedNow, impliedIfLose, delta){
+  const panel = document.getElementById('rooting-panel');
+  if(!panel) return;
+  const liveText = `${CURRENT_LIVE_ENTRIES.toLocaleString()} of ${INITIAL_ENTRIES.toLocaleString()} entries remain`;
+  const impliedNowRounded = fmtUSD(Math.round(impliedNow));
+  const prizeText = `${fmtUSD(TOTAL_PRIZE_POOL)} winner-take-all`; 
+  const buyInText = fmtUSD(BUY_IN);
+
+  let exposureHtml = `<div class="rooting-note">${liveText}. No in-progress exposure tonight.</div>`;
+
+  if(ENTRIES_ON_CHALK_TONIGHT > 0){
+    const impliedIfLoseRounded = fmtUSD(Math.round(impliedIfLose));
+    const deltaRounded = Math.round(delta);
+    const deltaPrefix = deltaRounded >= 0 ? '+' : '-';
+    const deltaLabel = `${deltaPrefix}${fmtUSD(Math.abs(deltaRounded))}`;
+    const entriesText = ENTRIES_ON_CHALK_TONIGHT.toLocaleString();
+    exposureHtml = `
+      <div class="rooting-note">${entriesText} entries still active tonight; if they bust, remaining entries drop to ${(CURRENT_LIVE_ENTRIES - ENTRIES_ON_CHALK_TONIGHT).toLocaleString()}.</div>
+      <div class="rooting-action">Implied value would move to <strong>${impliedIfLoseRounded}</strong> (${deltaLabel}).</div>
+    `;
+  }
+
+  panel.innerHTML = `
+    <div class="rooting-title">Rooting • ${CONTEST_NAME}</div>
+    <div class="rooting-game">${prizeText} • ${buyInText} buy-in</div>
+    <div class="rooting-action">Implied value now sits at <strong>${impliedNowRounded}</strong>.</div>
+    ${exposureHtml}
+  `;
+}
+
 function renderHeader(){
   const w = state.data.meta.currentWeek;
   document.getElementById("hdr-week").textContent = wLabel(w);
@@ -988,10 +1084,13 @@ function renderHeader(){
   }
   const impliedBanner = document.getElementById("impliedBanner");
   if(impliedBanner){
-    const entrantsText = ENTRANTS.toLocaleString();
-    const potText = TOTAL_POT.toLocaleString('en-US', { style:'currency', currency:'USD', maximumFractionDigits:0, minimumFractionDigits:0 });
-    impliedBanner.textContent = `▌ ${entrantsText} entrants totalling ${potText}`;
+    const liveText = CURRENT_LIVE_ENTRIES.toLocaleString();
+    const potText = fmtUSD(TOTAL_PRIZE_POOL);
+    const startText = INITIAL_ENTRIES.toLocaleString();
+    const buyInText = fmtUSD(BUY_IN);
+    impliedBanner.textContent = `▌ ${liveText} entries alive • ${potText} winner-take-all • buy-in ${buyInText} • started with ${startText} entries`;
   }
+  updateImpliedCard();
 }
 
 function setSpecialFocus(name){
@@ -1176,7 +1275,15 @@ function renderTracker(){
 
   document.getElementById("activeCount").textContent = `${active} active / ${state.data.players.length}`;
   const activeHeadline = document.getElementById("activeHeadline");
-  if(activeHeadline) activeHeadline.textContent = `${active} active`;
+  if(activeHeadline){
+    const total = state.data.players.length || 0;
+    activeHeadline.innerHTML = `
+      <span class="count">${active}</span>
+      <span class="slash">/</span>
+      <span class="total">${total}</span>
+      <span class="label">alive</span>
+    `;
+  }
 
   tbody.querySelectorAll(".toggle-btn").forEach(btn=>{
     btn.addEventListener("click",()=>{
@@ -1954,6 +2061,8 @@ function renderRooting(){
   const weekLabel = wLabel(w);
   const weekNode = document.getElementById("root-week");
   if(weekNode) weekNode.textContent = weekLabel;
+  const { impliedNow, impliedIfLose, delta } = impliedValueContext();
+  renderRootingCallout(impliedNow, impliedIfLose, delta);
 
   const rawField = w===3 ? FIELD_W3 : null;
   const fieldStatus = w===3 ? FIELD_RESULTS_W3 : {};

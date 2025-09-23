@@ -1,0 +1,7 @@
+{
+  "/api/odds/route": "/api/odds",
+  "/_not-found/page": "/_not-found",
+  "/make-picks/page": "/make-picks",
+  "/admin/page": "/admin",
+  "/page": "/"
+}

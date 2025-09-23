@@ -1,0 +1,7 @@
+{
+  "/api/odds/route": "app/api/odds/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/make-picks/page": "app/make-picks/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/page": "app/page.js"
+}
