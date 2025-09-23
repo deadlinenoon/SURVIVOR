@@ -5,3 +5,7 @@ dist/
 out/
 node_modules/
 .vercel/.env*
+.next
+out
+dist
+node_modules
