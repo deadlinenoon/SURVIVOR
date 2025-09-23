@@ -1,5 +1,7 @@
 .vercel
 # Build artifacts
+.next/
 dist/
+out/
 node_modules/
 .vercel/.env*
