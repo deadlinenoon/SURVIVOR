@@ -4,87 +4,263 @@
       {
         "name": "Cremaster Reflex 1",
         "picks": [
-          { "week": "1", "team": "ARI", "result": "W" },
-          { "week": "2", "team": "LAR", "result": "W" },
-          { "week": "3", "team": "SEA", "result": "W" }
+          {
+            "week": "1",
+            "team": "ARI",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "LAR",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "SEA",
+            "result": "W"
+          },
+          {
+            "week": "4",
+            "team": "HOU",
+            "result": "P"
+          }
         ]
       },
       {
         "name": "Cremaster Reflex 2",
         "picks": [
-          { "week": "1", "team": "DEN", "result": "W" },
-          { "week": "2", "team": "ARI", "result": "W" },
-          { "week": "3", "team": "TB", "result": "W" }
+          {
+            "week": "1",
+            "team": "DEN",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "ARI",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "TB",
+            "result": "W"
+          },
+          {
+            "week": "4",
+            "team": "LAC",
+            "result": "P"
+          }
         ]
       },
       {
         "name": "BulletProof Tiger 1",
         "picks": [
-          { "week": "1", "team": "DEN", "result": "W" },
-          { "week": "2", "team": "ARI", "result": "W" },
-          { "week": "3", "team": "KC", "result": "W" }
+          {
+            "week": "1",
+            "team": "DEN",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "ARI",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "KC",
+            "result": "W"
+          },
+          {
+            "week": "4",
+            "team": "HOU",
+            "result": "P"
+          }
         ]
       },
       {
         "name": "BulletProof Tiger 2",
         "picks": [
-          { "week": "1", "team": "DEN", "result": "W" },
-          { "week": "2", "team": "BAL", "result": "W" },
-          { "week": "3", "team": "SEA", "result": "W" }
+          {
+            "week": "1",
+            "team": "DEN",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "BAL",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "SEA",
+            "result": "W"
+          },
+          {
+            "week": "4",
+            "team": "BUF",
+            "result": "P"
+          }
         ]
       },
       {
         "name": "BulletProof Tiger 3",
         "picks": [
-          { "week": "1", "team": "ARI", "result": "W" },
-          { "week": "2", "team": "DAL", "result": "W" },
-          { "week": "3", "team": "BUF", "result": "W" }
+          {
+            "week": "1",
+            "team": "ARI",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "DAL",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "BUF",
+            "result": "W"
+          },
+          {
+            "week": "4",
+            "team": "DEN",
+            "result": "P"
+          }
         ]
       },
       {
         "name": "ChiPhi 1",
         "picks": [
-          { "week": "1", "team": "JAX", "result": "W" },
-          { "week": "2", "team": "DET", "result": "W" },
-          { "week": "3", "team": "KC", "result": "W" }
+          {
+            "week": "1",
+            "team": "JAX",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "DET",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "KC",
+            "result": "W"
+          },
+          {
+            "week": "4",
+            "team": "DEN",
+            "result": "P"
+          }
         ]
       },
       {
         "name": "Creamsicle Cabana",
         "picks": [
-          { "week": "1", "team": "WAS", "result": "W" },
-          { "week": "2", "team": "DAL", "result": "W" },
-          { "week": "3", "team": "SEA", "result": "W" }
+          {
+            "week": "1",
+            "team": "WAS",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "DAL",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "SEA",
+            "result": "W"
+          },
+          {
+            "week": "4",
+            "team": "LAC",
+            "result": "P"
+          }
         ]
       },
       {
         "name": "Gambling Grocer-7",
         "picks": [
-          { "week": "1", "team": "CIN", "result": "W" },
-          { "week": "2", "team": "DET", "result": "W" },
-          { "week": "3", "team": "KC", "result": "W" }
+          {
+            "week": "1",
+            "team": "CIN",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "DET",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "KC",
+            "result": "W"
+          },
+          {
+            "week": "4",
+            "team": "HOU",
+            "result": "P"
+          }
         ]
       },
       {
         "name": "SlyBiz",
         "picks": [
-          { "week": "1", "team": "ARI", "result": "W" },
-          { "week": "2", "team": "DAL", "result": "W" },
-          { "week": "3", "team": "GB", "result": "L" }
+          {
+            "week": "1",
+            "team": "ARI",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "DAL",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "GB",
+            "result": "L"
+          }
         ]
       }
-    ]
+    ],
+    "updatedAt": "2025-09-27T17:18:16.697Z",
+    "weekSummaries": {
+      "4": {
+        "week": "4",
+        "totalEntries": 8,
+        "uploadedAt": "2025-09-27T17:18:16.697Z",
+        "sourceName": "week4_picks.json",
+        "picksByTeam": {
+          "HOU": 3,
+          "DEN": 2,
+          "LAC": 2,
+          "BUF": 1
+        }
+      }
+    }
   },
   "scs": {
     "entries": [
       {
         "name": "Doigetashirtwiththat",
         "picks": [
-          { "week": "1", "team": "JAX", "result": "W" },
-          { "week": "2", "team": "DET", "result": "W" },
-          { "week": "3", "team": "KC", "result": "W" }
+          {
+            "week": "1",
+            "team": "JAX",
+            "result": "W"
+          },
+          {
+            "week": "2",
+            "team": "DET",
+            "result": "W"
+          },
+          {
+            "week": "3",
+            "team": "KC",
+            "result": "W"
+          }
         ]
       }
-    ]
+    ],
+    "weekSummaries": {}
   }
 }
