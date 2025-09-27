@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { isContestId, getContestView } from "@/lib/contest-api";
 
+type ContestRouteParams = { id?: string | string[] };
+
 export async function GET(
-  _: NextRequest,
-  { params }: { params: { id: string } },
+  _req: Request,
+  context: { params?: Promise<ContestRouteParams> },
 ) {
-  const { id } = params;
+  const rawParams = (await context.params) ?? {};
+  const idValue = Array.isArray(rawParams.id) ? rawParams.id[0] : rawParams.id;
+  const id = idValue ?? undefined;
 
   if (typeof id !== "string" || !isContestId(id)) {
     return NextResponse.json({ error: "contest_not_found" }, { status: 404 });
