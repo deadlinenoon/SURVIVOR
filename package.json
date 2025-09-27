@@ -2,24 +2,40 @@
   "name": "survivor-site",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "clean": "rimraf dist .cache || true",
-    "build:prod": "rm -rf dist && mkdir -p dist && find . -mindepth 1 -maxdepth 1 ! -name dist ! -name node_modules ! -name .git ! -name .vercel -exec cp -R {} dist/ \\;",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "test": "vitest",
+    "start": "next start",
+    "smoke:dashboard": "ts-node -r tsconfig-paths/register --transpile-only scripts/smoke-system-store.ts"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
-    "rimraf": "^5.0.5",
-    "typescript": "^5.9.2"
+    "autoprefixer": "^10.4.21",
+    "jsdom": "^27.0.0",
+    "postcss": "^8.5.6",
+    "rimraf": "^6.0.1",
+    "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@vercel/analytics": "^1.5.0",
-    "next": "^15.5.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@vercel/blob": "^2.0.0",
+    "@vercel/speed-insights": "^1.2.0",
+    "cheerio": "^1.0.0-rc.12",
+    "next": "^15.5.4",
+    "pdf-parse": "^1.1.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   }
 }

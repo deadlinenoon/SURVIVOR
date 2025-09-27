@@ -9,3 +9,18 @@ node_modules/
 out
 dist
 node_modules
+
+# Local data snapshots and backups
+.data/
+backups/
+
+# Local logs or help dumps
+inspect.txt
+sips_help.txt
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Temporary backup files
+*.bak
+*.backup.*

@@ -1,0 +1,90 @@
+{
+  "circa": {
+    "entries": [
+      {
+        "name": "Cremaster Reflex 1",
+        "picks": [
+          { "week": "1", "team": "ARI", "result": "W" },
+          { "week": "2", "team": "LAR", "result": "W" },
+          { "week": "3", "team": "SEA", "result": "W" }
+        ]
+      },
+      {
+        "name": "Cremaster Reflex 2",
+        "picks": [
+          { "week": "1", "team": "DEN", "result": "W" },
+          { "week": "2", "team": "ARI", "result": "W" },
+          { "week": "3", "team": "TB", "result": "W" }
+        ]
+      },
+      {
+        "name": "BulletProof Tiger 1",
+        "picks": [
+          { "week": "1", "team": "DEN", "result": "W" },
+          { "week": "2", "team": "ARI", "result": "W" },
+          { "week": "3", "team": "KC", "result": "W" }
+        ]
+      },
+      {
+        "name": "BulletProof Tiger 2",
+        "picks": [
+          { "week": "1", "team": "DEN", "result": "W" },
+          { "week": "2", "team": "BAL", "result": "W" },
+          { "week": "3", "team": "SEA", "result": "W" }
+        ]
+      },
+      {
+        "name": "BulletProof Tiger 3",
+        "picks": [
+          { "week": "1", "team": "ARI", "result": "W" },
+          { "week": "2", "team": "DAL", "result": "W" },
+          { "week": "3", "team": "BUF", "result": "W" }
+        ]
+      },
+      {
+        "name": "ChiPhi 1",
+        "picks": [
+          { "week": "1", "team": "JAX", "result": "W" },
+          { "week": "2", "team": "DET", "result": "W" },
+          { "week": "3", "team": "KC", "result": "W" }
+        ]
+      },
+      {
+        "name": "Creamsicle Cabana",
+        "picks": [
+          { "week": "1", "team": "WAS", "result": "W" },
+          { "week": "2", "team": "DAL", "result": "W" },
+          { "week": "3", "team": "SEA", "result": "W" }
+        ]
+      },
+      {
+        "name": "Gambling Grocer-7",
+        "picks": [
+          { "week": "1", "team": "CIN", "result": "W" },
+          { "week": "2", "team": "DET", "result": "W" },
+          { "week": "3", "team": "KC", "result": "W" }
+        ]
+      },
+      {
+        "name": "SlyBiz",
+        "picks": [
+          { "week": "1", "team": "ARI", "result": "W" },
+          { "week": "2", "team": "DAL", "result": "W" },
+          { "week": "3", "team": "GB", "result": "L" }
+        ]
+      }
+    ]
+  },
+  "scs": {
+    "entries": [
+      {
+        "name": "Doigetashirtwiththat",
+        "picks": [
+          { "week": "1", "team": "JAX", "result": "W" },
+          { "week": "2", "team": "DET", "result": "W" },
+          { "week": "3", "team": "KC", "result": "W" }
+        ]
+      }
+    ]
+  }
+}

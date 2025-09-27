@@ -1,2 +1,113 @@
-:root { --line:#e5e7eb; --ink:#111; }
-html,body { margin:0; color:var(--ink); background:#fff; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --pill-radius: 9999px;
+  --pill-pad-y: 6px;
+  --pill-pad-x: 10px;
+
+  --dl-card: #0f172a;
+  --dl-chip: #0b1221;
+  --dl-line: rgba(255, 255, 255, 0.14);
+  --dl-text: #ffffff;
+  --field-green: #256c3a;
+  --field-green-dark: #1f5a31;
+  --goal: #facc15;
+
+  --pill-green: #16a34a; /* tw green-600  */
+  --pill-green-hover: #15803d; /* green-700 */
+  --pill-red: #dc2626;   /* tw red-600    */
+  --pill-red-hover: #b91c1c;   /* red-700   */
+  --pill-neutral: #334155;     /* slate-700 */
+  --pill-neutral-hover: #1f2937; /* gray-800 */
+  --pill-disabled-bg: #475569; /* slate-600 */
+  --pill-text: #ffffff;
+  --focus-ring: 0 0 0 3px rgba(147, 197, 253, .5); /* sky-300 */
+}
+
+html, body {
+  margin: 0;
+  background: #0f1115;
+  color: #e7e9ee;
+  font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--pill-radius);
+  padding: var(--pill-pad-y) var(--pill-pad-x);
+  font-weight: 600;
+  color: var(--pill-text);
+  background: var(--pill-neutral);
+  border: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.pill--neutral {
+  background: var(--pill-neutral);
+}
+
+.pill--neutral:hover {
+  background: var(--pill-neutral-hover);
+}
+
+.pill--win {
+  background: var(--pill-green);
+}
+
+.pill--win:hover {
+  background: var(--pill-green-hover);
+}
+
+.pill--loss {
+  background: var(--pill-red);
+}
+
+.pill--loss:hover {
+  background: var(--pill-red-hover);
+}
+
+.pill--disabled {
+  background: var(--pill-disabled-bg);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: not-allowed;
+}
+
+.pill:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 999px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+}
+
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) rgba(15, 23, 42, 0.6);
+}
+
+.max-height-open { max-height: 1200px; }

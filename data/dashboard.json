@@ -1,0 +1,77 @@
+{
+  "analytics": {
+    "updatedAt": "2025-09-26T10:30:00.000Z",
+    "metrics": [
+      {
+        "id": "traffic",
+        "label": "Total Sessions",
+        "unit": "sessions",
+        "value": 4821,
+        "deltas": {
+          "dod": 6.2,
+          "wow": 14.7,
+          "mom": 32.5,
+          "qoq": 58.3,
+          "yoy": 121.4
+        }
+      },
+      {
+        "id": "ctr",
+        "label": "Newsletter CTR",
+        "unit": "%",
+        "value": 28.4,
+        "deltas": {
+          "dod": -1.2,
+          "wow": 2.4,
+          "mom": 5.9,
+          "qoq": 8.1,
+          "yoy": 14.4
+        }
+      },
+      {
+        "id": "conversion",
+        "label": "Pick Submissions",
+        "unit": "submissions",
+        "value": 167,
+        "deltas": {
+          "dod": 3.9,
+          "wow": 9.1,
+          "mom": 18.6,
+          "qoq": 25.2,
+          "yoy": 46.7
+        }
+      }
+    ]
+  },
+  "note": {
+    "message": "smoke",
+    "updatedAt": "2025-09-26T17:08:07.583Z"
+  },
+  "errors": [
+    {
+      "id": "err-001",
+      "timestamp": "2025-09-25T13:05:12.000Z",
+      "source": "api/weather",
+      "message": "OpenWeather lat/lon lookup failed (429)",
+      "status": "open",
+      "count": 3
+    },
+    {
+      "id": "err-002",
+      "timestamp": "2025-09-25T02:41:07.000Z",
+      "source": "api/rooting-consensus",
+      "message": "ScoresAndOdds markup changed, unable to parse consensus table",
+      "status": "investigating",
+      "count": 1
+    },
+    {
+      "id": "err-003",
+      "timestamp": "2025-09-24T19:28:44.000Z",
+      "source": "api/odds",
+      "message": "Odds API quota exhausted",
+      "status": "resolved",
+      "count": 4
+    }
+  ],
+  "rootingOverride": null
+}

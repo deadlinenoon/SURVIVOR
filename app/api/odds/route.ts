@@ -1,60 +1,73 @@
 import { NextResponse } from "next/server";
 
-// Single bookmaker to display (change if you want another)
 const BOOKMAKER = "draftkings";
 
-// Your TheOddsAPI key: keep it server-side only
-const FALLBACK_KEY = "144d3e338306ea2e854a1feaf15fe8a0";
+function withinRange(commenceISO: string, startISO?: string, endISO?: string) {
+  if (!startISO || !endISO) return true; // no filter if not provided
+  const t = +new Date(commenceISO);
+  return t >= +new Date(startISO) && t <= +new Date(endISO);
+}
 
 export async function GET() {
   try {
-    const key = process.env.ODDS_API_KEY || FALLBACK_KEY;
+    const key = process.env.ODDS_API_KEY;
     if (!key) {
       return NextResponse.json({ error: "Missing ODDS_API_KEY" }, { status: 500 });
     }
 
-    const base = "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds";
-    const url = `${base}?regions=us&markets=h2h,spreads&oddsFormat=american&bookmakers=${BOOKMAKER}&apiKey=${encodeURIComponent(
-      key
-    )}`;
+    const startIso = process.env.WEEK_START_ISO || undefined;
+    const endIso = process.env.WEEK_END_ISO || undefined;
 
-    const r = await fetch(url, { next: { revalidate: 60 } });
+    const url = new URL("https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds");
+    url.searchParams.set("regions", "us");
+    url.searchParams.set("markets", "h2h,spreads,totals");
+    url.searchParams.set("oddsFormat", "american");
+    url.searchParams.set("bookmakers", BOOKMAKER);
+    url.searchParams.set("apiKey", key);
+
+    const r = await fetch(url.toString(), { next: { revalidate: 60 } });
     if (!r.ok) {
-      const text = await r.text();
-      return NextResponse.json({ error: "odds_fetch_failed", detail: text }, { status: 502 });
+      return NextResponse.json({ error: "odds_fetch_failed", detail: await r.text() }, { status: 502 });
     }
     const games = (await r.json()) as any[];
 
-    const rows = games.map((g) => {
-      const bk = (g.bookmakers || []).find((b: any) => b.key === BOOKMAKER);
-      const h2h = bk?.markets?.find((m: any) => m.key === "h2h");
-      const spr = bk?.markets?.find((m: any) => m.key === "spreads");
+    const rows = games
+      .filter((g) => withinRange(g.commence_time, startIso, endIso))
+      .map((g) => {
+        const bk = (g.bookmakers || []).find((b: any) => b.key === BOOKMAKER);
+        const markets = Object.fromEntries((bk?.markets ?? []).map((m: any) => [m.key, m]));
+        const h2h = markets["h2h"];
+        const spr = markets["spreads"];
+        const tot = markets["totals"];
 
-      const h2hOutcomes: Record<string, number | undefined> = {};
-      h2h?.outcomes?.forEach((o: any) => (h2hOutcomes[o.name] = o.price));
+        const moneyline: Record<string, number | undefined> = {};
+        h2h?.outcomes?.forEach((o: any) => (moneyline[o.name] = o.price));
 
-      let spreadFav: { name: string; point: number; price: number | undefined } | undefined;
-      let spreadDog: { name: string; point: number; price: number | undefined } | undefined;
-      if (spr?.outcomes?.length === 2) {
-        const [a, b] = spr.outcomes;
-        const fav = [a, b].sort((x: any, y: any) => (x.point ?? 0) - (y.point ?? 0))[0];
-        const dog = fav === a ? b : a;
-        spreadFav = { name: fav.name, point: fav.point, price: fav.price };
-        spreadDog = { name: dog.name, point: dog.point, price: dog.price };
-      }
+        let fav, dog;
+        if (spr?.outcomes?.length === 2) {
+          const [a, b] = spr.outcomes;
+          const sorted = [a, b].sort((x: any, y: any) => (x.point ?? 0) - (y.point ?? 0)); // negative = favorite
+          fav = { name: sorted[0].name, point: sorted[0].point, price: sorted[0].price };
+          dog = { name: sorted[1].name, point: sorted[1].point, price: sorted[1].price };
+        }
 
-      return {
-        id: g.id,
-        commence: g.commence_time,
-        homeTeam: g.home_team,
-        awayTeam: g.away_team,
-        moneyline: {
-          [g.home_team]: h2hOutcomes[g.home_team],
-          [g.away_team]: h2hOutcomes[g.away_team],
-        },
-        spread: { fav: spreadFav, dog: spreadDog },
-      };
-    });
+        let totals;
+        if (tot?.outcomes?.length === 2) {
+          const over = tot.outcomes.find((o: any) => /over/i.test(o.name))?.point;
+          const under = tot.outcomes.find((o: any) => /under/i.test(o.name))?.point;
+          totals = { over, under, line: over ?? under };
+        }
+
+        return {
+          id: g.id,
+          commence: g.commence_time,
+          homeTeam: g.home_team,
+          awayTeam: g.away_team,
+          moneyline,
+          spread: { fav, dog },
+          totals,
+        };
+      });
 
     return NextResponse.json({ bookmaker: BOOKMAKER, rows }, { status: 200 });
   } catch (e: any) {

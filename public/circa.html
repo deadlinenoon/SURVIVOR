@@ -9,8 +9,10 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 .wrap{max-width:1300px;margin:0 auto;padding:24px}
 header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
-.home-link{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:inherit;text-decoration:none;font-weight:600;font-size:13px}
+.home-link{display:inline-flex;align-items:center;gap:10px;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:inherit;text-decoration:none;font-weight:600;font-size:13px}
 .home-link:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.home-logo-video{width:56px;height:32px;object-fit:cover;border-radius:10px;box-shadow:0 6px 16px rgba(0,0,0,.35);background:#000}
+.home-logo-video::-webkit-media-controls{display:none !important}
 .brand-stack{display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px}
 .logo-wrap{display:flex;align-items:center;gap:8px}
 .home-logo-media{display:block;width:108px;height:72px;border-radius:16px;object-fit:contain;box-shadow:0 10px 25px rgba(0,0,0,.35);background:#ffffff;padding:6px}
@@ -59,6 +61,8 @@ tr:last-child td{border-bottom:0}
 .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px}
 .chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:12px}
 .chip.warn{color:var(--warn)}.chip.info{color:var(--info)}.chip.ok{color:var(--good)}.chip.bad{color:var(--bad)}
+.chip-special{background:#fff7cc;border-color:#f5d95c!important;color:#7a5a00}
+.chip-used{background:#fee2e2;border-color:#fca5a5!important;color:#991b1b}
 .muted{color:var(--muted)}footer{margin-top:16px;color:var(--muted);font-size:12px;text-align:center}
 .scroll{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:12px}
 .tiny{font-size:12px}
@@ -125,8 +129,8 @@ tr:last-child td{border-bottom:0}
 .game-header{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .game-icon{font-size:20px}
 .game-body{display:flex;flex-direction:column;gap:6px}
-.game-team{display:flex;align-items:center;gap:6px;font-weight:600}
-.game-team.used{opacity:.35}
+.game-team{display:flex;align-items:center;gap:6px;font-weight:600;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,.03)}
+.game-team.used{background:rgba(255,107,107,.22);color:#fecaca}
 .special-focus-note{font-size:11px;color:var(--muted)}
 .game-at{font-size:11px;color:var(--muted);text-align:center;letter-spacing:.6px;text-transform:uppercase}
 #specialStatus tbody tr.focus td{background:rgba(255,255,255,.05)}
@@ -192,12 +196,46 @@ tr:last-child td{border-bottom:0}
 .elim-plus{margin-right:6px}
 .elim-x{color:var(--bad);cursor:pointer;user-select:none}
 .elim-panel{border:1px solid rgba(255,107,107,.3);border-radius:12px;padding:8px;background:rgba(255,255,255,.03)}
+.matchup-grid{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.matchup-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.03);display:flex;flex-direction:column;gap:10px}
+.matchup-header{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.matchup-teams{display:flex;flex-direction:column;gap:10px}
+.matchup-team-row{display:grid;grid-template-columns:minmax(0,1fr)70px 70px;gap:8px;align-items:center;font-size:13px}
+.matchup-team-info{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
+.matchup-team-row .logo-lg{margin-right:8px;flex-shrink:0}
+.matchup-team-role{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.matchup-team-money,.matchup-team-spread{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.matchup-total{display:flex;justify-content:space-between;border:1px dashed var(--line);border-radius:10px;padding:6px 10px;font-size:13px;color:var(--ink);background:rgba(255,255,255,.02)}
+.matchup-weather{border:1px solid rgba(148,163,184,.25);border-radius:12px;background:rgba(255,255,255,.02);padding:0}
+.matchup-weather>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}
+.matchup-weather>summary::-webkit-details-marker{display:none}
+.matchup-weather[open]{background:rgba(255,255,255,.04);border-color:rgba(124,92,255,.35)}
+.matchup-weather-body{padding:0 12px 12px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.matchup-weather-emoji{font-size:16px}
+.matchup-weather-venue{border:1px solid var(--line);border-radius:10px;padding:8px;background:rgba(255,255,255,.02);color:var(--ink)}
+.matchup-weather-venue .tiny{color:var(--muted)}
+.wind-field{position:relative;width:100%;height:80px;border:2px solid rgba(148,163,184,.4);border-radius:12px;background:linear-gradient(90deg,rgba(15,23,42,.85),rgba(30,41,59,.85));overflow:hidden;margin-top:4px}
+.wind-field::before,.wind-field::after{content:"";position:absolute;top:0;width:12px;height:100%;background:rgba(148,163,184,.35)}
+.wind-field::before{left:0;border-right:2px solid rgba(148,163,184,.6)}
+.wind-field::after{right:0;border-left:2px solid rgba(148,163,184,.6)}
+.wind-arrow{position:absolute;top:50%;left:50%;width:60%;height:12px;margin:-6px 0 0 -30%;border-radius:999px;background:rgba(79,70,229,.25);border:2px solid rgba(129,140,248,.8);display:flex;align-items:center;justify-content:flex-end;transform-origin:center}
+.wind-arrow::after{content:"";width:16px;height:16px;border-radius:4px;transform:rotate(45deg);background:rgba(129,140,248,.9);margin-right:-8px}
+.wind-speed-low .wind-arrow{width:40%;opacity:.6}
+.wind-speed-medium .wind-arrow{width:55%;opacity:.85}
+.wind-speed-high .wind-arrow{width:75%;opacity:1;border-color:rgba(99,102,241,1);background:rgba(67,56,202,.35)}
+.matchup-weather[data-indoor="1"]{border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.08)}
+.matchup-weather[data-indoor="1"]>summary{color:#fcd34d}
 </style>
 </head>
 <body id="top">
 <div class="wrap">
   <header>
-    <a class="home-link" href="#top" aria-label="Back to top">Home</a>
+    <a class="home-link" href="/" aria-label="Back to DeadlineNoon home">
+      <video class="home-logo-video" autoplay muted loop playsinline>
+        <source src="logo.mp4" type="video/mp4" />
+      </video>
+      <span>Home</span>
+    </a>
     <div class="brand-stack">
       <div class="badge">Week <span id="hdr-week"></span> • <span id="hdr-date"></span></div>
       <div class="brand">Deadline<span class="accent">Noon</span> — SuperContest Survivor</div>
@@ -277,6 +315,16 @@ tr:last-child td{border-bottom:0}
       <div id="specialGameCards" class="special-games-wrap"></div>
     </section>
 
+    <section class="card" id="current-week-odds-card">
+      <div class="row">
+        <h2>Current Week Odds</h2>
+        <span class="tiny muted" id="current-week-weather-stamp">Loading…</span>
+      </div>
+      <div id="current-week-odds-status" class="tiny muted">Fetching latest lines…</div>
+      <div id="current-week-weather-status" class="tiny muted"></div>
+      <div id="current-week-odds-list" class="matchup-grid"></div>
+    </section>
+
     <!-- RIGHT: Rules + Make Picks -->
     <section class="card">
       <div class="row"><h2>Rules</h2><span class="chip">Implemented</span></div>
@@ -288,26 +336,11 @@ tr:last-child td{border-bottom:0}
         <li><strong>40% special-usage alerts</strong> (popup + badges): TG threshold 4/8; XMAS threshold 3/6.</li>
       </ul>
 
-      <h3 style="margin-top:10px">Make Picks (Weeks 4+ or remaining W3)</h3>
-      <div class="tiny muted" style="margin-bottom:6px">Choose a week, entry, then an <strong>available</strong> team (logos shown). Saved picks persist locally.</div>
-      <div id="pickControls" class="controls" style="margin-bottom:8px">
-        <label class="tiny muted">Week
-          <select id="pickWeek"></select>
-        </label>
-        <label class="tiny muted">Entry
-          <select id="pickPlayer"></select>
-        </label>
-        <label class="tiny muted">Team
-          <select id="pickTeam"></select>
-        </label>
-        <button id="savePick">Save Pick</button>
+      <div class="callout" style="margin-top:12px">
+        <div class="headline tiny" style="text-transform:uppercase;letter-spacing:.4px;color:var(--muted);">Odds &amp; Availability</div>
+        <div class="tiny" style="margin-top:4px">Weekly odds, logos, and pick availability now live in the main dashboard above. This panel keeps the core rules here for quick reference.</div>
       </div>
-      <div id="availabilityTiles" class="kit"></div>
-
-      <details style="margin-top:12px">
-        <summary><strong>Data (read-only seed below; your edits persist locally)</strong></summary>
-        <textarea id="dataEditor" rows="12" spellcheck="false" style="width:100%"></textarea>
-      </details>
+      <div class="tiny muted" style="margin-top:10px">Special-week readiness, rooting, and hedge tools remain below. Update picks directly in your sheet or via the aggregated schedule section.</div>
 
     </section>
 
@@ -469,10 +502,10 @@ tr:last-child td{border-bottom:0}
       <div class="chi-grid" style="margin-top:8px">
         <label>Mode
           <select id="hedgeMode">
-            <option value="CHIRAQI">Chiraqi Dome — “Full body armor when you ain’t trusting nobody.” (Full ML hedge)</option>
-            <option value="SOLDIER">Soldier Cover — “Playin’ defense at Soldier — bend don’t break.” (Even ML + spread split)</option>
-            <option value="OBLOCK">O-Block Lock — “Protection from those corner boys when they lookin’ to rip and run.” (ML-heavy 75/25 split)</option>
-            <option value="CCC">Capone Cover Collector — “Profit dirty — skim 50% when the dog just covers. Only blow your cover when the favorite steamrolls.” (Spread-heavy 75/25 split)</option>
+            <option value="CHIRAQI">Chiraqi Dome — Full ML hedge; every dollar backs the opponent.</option>
+            <option value="SOLDIER">Soldier Cover — 50/50 split between opponent ML and spread.</option>
+            <option value="OBLOCK">O-Block Lock — 75/25 ML-heavy blend for steadier protection.</option>
+            <option value="CCC">Capone Cover Collector — 25/75 spread-heavy mix to cash on covers.</option>
           </select>
         </label>
         <label>Opponent ML (American)
@@ -737,6 +770,294 @@ const XMAS  = ["DAL","WAS","DET","MIN","DEN","KC"];            // 6
 const SPECIAL_THRESHOLD = 0.40;
 const TG_THRESHOLD = Math.ceil(TG_BF.length * SPECIAL_THRESHOLD);   // 4
 const XMAS_THRESHOLD = Math.ceil(XMAS.length  * SPECIAL_THRESHOLD); // 3
+const SPECIAL_GAME_GROUPS = [
+  {
+    key:"TG_BF",
+    title:"Thanksgiving & Black Friday Slate",
+    games:[
+      {tag:"TG", date:"Thu • Nov 27", time:"12:30p ET", away:"GB", home:"DET"},
+      {tag:"TG", date:"Thu • Nov 27", time:"4:30p ET", away:"KC", home:"DAL"},
+      {tag:"TG", date:"Thu • Nov 27", time:"8:20p ET", away:"CIN", home:"BAL"},
+      {tag:"BF", date:"Fri • Nov 28", time:"3:00p ET", away:"CHI", home:"PHI"}
+    ]
+  },
+  {
+    key:"XMAS",
+    title:"Christmas Slate",
+    games:[
+      {tag:"XMAS", date:"Thu • Dec 25", time:"1:00p ET", away:"MIN", home:"DET"},
+      {tag:"XMAS", date:"Thu • Dec 25", time:"4:30p ET", away:"WAS", home:"DAL"},
+      {tag:"XMAS", date:"Thu • Dec 25", time:"8:15p ET", away:"DEN", home:"KC"}
+    ]
+  }
+];
+const TEAM_FULL_NAME_TO_CODE = {
+  "arizona cardinals":"ARI",
+  "atlanta falcons":"ATL",
+  "baltimore ravens":"BAL",
+  "buffalo bills":"BUF",
+  "carolina panthers":"CAR",
+  "chicago bears":"CHI",
+  "cincinnati bengals":"CIN",
+  "cleveland browns":"CLE",
+  "dallas cowboys":"DAL",
+  "denver broncos":"DEN",
+  "detroit lions":"DET",
+  "green bay packers":"GB",
+  "houston texans":"HOU",
+  "indianapolis colts":"IND",
+  "jacksonville jaguars":"JAX",
+  "kansas city chiefs":"KC",
+  "las vegas raiders":"LV",
+  "los angeles chargers":"LAC",
+  "los angeles rams":"LAR",
+  "miami dolphins":"MIA",
+  "minnesota vikings":"MIN",
+  "new england patriots":"NE",
+  "new orleans saints":"NO",
+  "new york giants":"NYG",
+  "new york jets":"NYJ",
+  "philadelphia eagles":"PHI",
+  "pittsburgh steelers":"PIT",
+  "san francisco 49ers":"SF",
+  "seattle seahawks":"SEA",
+  "tampa bay buccaneers":"TB",
+  "tennessee titans":"TEN",
+  "washington commanders":"WAS"
+};
+const TEAM_NICK_LOOKUP = Object.fromEntries(Object.entries(TEAM_NAME).map(([code,name])=>[name.toLowerCase(), code]));
+const DEFAULT_WEATHER_INFO = {
+  emoji:"🏟️",
+  summary:"Conditions pending",
+  wind:"Waiting for latest forecast",
+  detail:"Check back soon for the live weather read at kickoff.",
+  windMeta: {}
+};
+
+function resolveTeamCode(label){
+  if(!label) return "";
+  const trimmed = String(label).trim();
+  if(!trimmed) return "";
+  const upper = trimmed.toUpperCase();
+  if(TEAM_NAME[upper]) return upper;
+  const lower = trimmed.toLowerCase();
+  if(TEAM_FULL_NAME_TO_CODE[lower]) return TEAM_FULL_NAME_TO_CODE[lower];
+  const parts = lower.split(/\s+/);
+  const nickname = parts[parts.length-1];
+  if(nickname && TEAM_NICK_LOOKUP[nickname]) return TEAM_NICK_LOOKUP[nickname];
+  return upper;
+}
+
+function formatMoneyline(value){
+  if(value === undefined || value === null || value === "") return "—";
+  const num = Number(value);
+  if(!Number.isFinite(num)) return String(value);
+  return num > 0 ? `+${num}` : String(num);
+}
+
+function formatSpread(point, price){
+  if(point === undefined || point === null) return "—";
+  const spread = Number(point);
+  const spreadText = Number.isFinite(spread) ? `${spread > 0 ? "+" : ""}${spread}` : String(point);
+  if(price === undefined || price === null || price === "") return spreadText;
+  const priceText = formatMoneyline(price);
+  return `${spreadText} (${priceText})`;
+}
+
+function formatTotal(value){
+  if(value === undefined || value === null || value === "") return "—";
+  const num = Number(value);
+  if(!Number.isFinite(num)) return String(value);
+  return Number.isInteger(num) ? num.toFixed(0) : num.toFixed(1);
+}
+
+function formatKickoff(commenceIso){
+  const date = new Date(commenceIso);
+  if(!Number.isFinite(date.getTime())) return { time:"TBD", label:"" };
+  const fallbackTime = date.toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit" });
+  const fallbackWeek = date.toLocaleDateString("en-US", { weekday:"short" });
+  const fallbackMonthDay = date.toLocaleDateString("en-US", { month:"short", day:"numeric" });
+  let time = fallbackTime;
+  let weekday = fallbackWeek;
+  let monthDay = fallbackMonthDay;
+  try{ time = new Intl.DateTimeFormat("en-US", { hour:"numeric", minute:"2-digit", timeZone:"America/New_York" }).format(date);}catch{}
+  try{ weekday = new Intl.DateTimeFormat("en-US", { weekday:"short", timeZone:"America/New_York" }).format(date);}catch{}
+  try{ monthDay = new Intl.DateTimeFormat("en-US", { month:"short", day:"numeric", timeZone:"America/New_York" }).format(date);}catch{}
+  return { time, label: `${weekday} · ${monthDay}` };
+}
+
+function formatWeatherStamp(iso){
+  if(!iso) return null;
+  const date = new Date(iso);
+  if(!Number.isFinite(date.getTime())) return null;
+  try{
+    return new Intl.DateTimeFormat("en-US", { month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZone:"America/New_York" }).format(date);
+  }catch{
+    return date.toLocaleString("en-US", { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" });
+  }
+}
+
+function teamDisplayName(code, fallback){
+  if(code && TEAM_NAME[code]) return TEAM_NAME[code];
+  return fallback || code || "";
+}
+
+function renderMatchupCard(game, weather){
+  const awayCode = resolveTeamCode(game.awayTeam) || game.awayTeam;
+  const homeCode = resolveTeamCode(game.homeTeam) || game.homeTeam;
+  const awayName = teamDisplayName(awayCode, game.awayTeam);
+  const homeName = teamDisplayName(homeCode, game.homeTeam);
+  const kickoff = formatKickoff(game.commence);
+  const favTeam = game?.spread?.fav?.name;
+  const awaySpread = favTeam === game.awayTeam ? game.spread?.fav : game.spread?.dog;
+  const homeSpread = favTeam === game.homeTeam ? game.spread?.fav : game.spread?.dog;
+  const totalLine = formatTotal(game?.totals?.line);
+  const weatherInfo = weather && typeof weather === 'object' ? weather : DEFAULT_WEATHER_INFO;
+  const summary = weatherInfo.summary || DEFAULT_WEATHER_INFO.summary;
+  const emoji = weatherInfo.emoji || DEFAULT_WEATHER_INFO.emoji;
+  const wind = weatherInfo.wind || DEFAULT_WEATHER_INFO.wind;
+  const detail = weatherInfo.detail || DEFAULT_WEATHER_INFO.detail;
+  const stadium = weatherInfo.stadium || null;
+  const windMeta = weatherInfo.windMeta || {};
+  const direction = typeof windMeta.direction === 'number' ? windMeta.direction : null;
+  const speed = typeof windMeta.speed === 'number' ? windMeta.speed : null;
+  const speedClass = speed === null ? '' : speed >= 20 ? 'wind-speed-high' : speed >= 12 ? 'wind-speed-medium' : 'wind-speed-low';
+  const rotation = direction === null ? 0 : ((direction % 360) + 360) % 360;
+  const windField = `<div class="wind-field ${speedClass}"><div class="wind-arrow" style="transform: rotate(${rotation}deg);"></div></div>`;
+  const venue = stadium
+    ? `<div class="matchup-weather-venue"><div class="font-semibold">${htmlSafe(stadium.name || "")}</div><div class="tiny">${htmlSafe([stadium.city||"", stadium.state||""].filter(Boolean).join(", "))}</div>${stadium.indoor?'<div class="tiny">Roof closed — weather neutral.</div>':''}</div>`
+    : '';
+  const totalLabel = totalLine === '—' ? 'Pending' : `O/U ${totalLine}`;
+  return `<article class="matchup-card">
+    <div class="matchup-header"><span>${htmlSafe(kickoff.time)}</span><span>${htmlSafe(kickoff.label)}</span></div>
+    <div class="matchup-teams">
+      <div class="matchup-team-row">
+        <div class="matchup-team-info">${cellLogo(awayCode,true)}<div><div>${htmlSafe(awayName)}</div><div class="matchup-team-role">Away</div></div></div>
+        <div class="matchup-team-money">${htmlSafe(formatMoneyline(game?.moneyline?.[game.awayTeam]))}</div>
+        <div class="matchup-team-spread">${htmlSafe(formatSpread(awaySpread?.point, awaySpread?.price))}</div>
+      </div>
+      <div class="matchup-team-row">
+        <div class="matchup-team-info">${cellLogo(homeCode,true)}<div><div>${htmlSafe(homeName)}</div><div class="matchup-team-role">Home</div></div></div>
+        <div class="matchup-team-money">${htmlSafe(formatMoneyline(game?.moneyline?.[game.homeTeam]))}</div>
+        <div class="matchup-team-spread">${htmlSafe(formatSpread(homeSpread?.point, homeSpread?.price))}</div>
+      </div>
+    </div>
+    <div class="matchup-total"><span>Total</span><span>${htmlSafe(totalLabel)}</span></div>
+    <details class="matchup-weather"${weatherInfo.indoor ? ' data-indoor="1"' : ''}>
+      <summary><span class="matchup-weather-emoji">${htmlSafe(emoji)}</span><span>${htmlSafe(summary)}</span></summary>
+      <div class="matchup-weather-body">
+        ${windField}
+        <div><strong>Wind:</strong> ${htmlSafe(wind)}</div>
+        <div><strong>Field Notes:</strong> ${htmlSafe(detail)}</div>
+        ${venue}
+      </div>
+    </details>
+  </article>`;
+}
+
+function renderCurrentWeekOdds(games, weatherMap, meta){
+  const listEl = document.getElementById('current-week-odds-list');
+  const statusEl = document.getElementById('current-week-odds-status');
+  const weatherStatusEl = document.getElementById('current-week-weather-status');
+  const stampEl = document.getElementById('current-week-weather-stamp');
+  if(!listEl || !statusEl) return;
+
+  if(!games.length){
+    listEl.innerHTML = '';
+    statusEl.textContent = 'No games in the current week window.';
+  }else{
+    statusEl.textContent = '';
+    const html = games.map(game => {
+      const key = resolveTeamCode(game.homeTeam) || game.homeTeam;
+      const wx = weatherMap && key ? weatherMap[key] : undefined;
+      return renderMatchupCard(game, wx);
+    }).join('');
+    listEl.innerHTML = html || '<div class="tiny muted">Unable to render matchups.</div>';
+  }
+
+  if(weatherStatusEl){
+    weatherStatusEl.textContent = meta && meta.weatherError ? meta.weatherError : '';
+  }
+
+  if(stampEl){
+    if(meta && meta.fetchedAt){
+      const label = formatWeatherStamp(meta.fetchedAt);
+      stampEl.textContent = label ? `Weather updated ${label}` : 'Weather updated just now';
+    }else if(meta && meta.weatherError){
+      stampEl.textContent = 'Weather unavailable';
+    }else{
+      stampEl.textContent = 'Weather updated —';
+    }
+  }
+}
+
+async function loadCurrentWeekOdds(){
+  const statusEl = document.getElementById('current-week-odds-status');
+  const weatherStatusEl = document.getElementById('current-week-weather-status');
+  const stampEl = document.getElementById('current-week-weather-stamp');
+  if(statusEl) statusEl.textContent = 'Fetching latest lines…';
+  if(weatherStatusEl) weatherStatusEl.textContent = '';
+  if(stampEl) stampEl.textContent = 'Loading…';
+
+  try{
+    const oddsRes = await fetch('/api/odds', { cache:'no-store' });
+    if(!oddsRes.ok) throw new Error(`Odds fetch failed (${oddsRes.status})`);
+    const payload = await oddsRes.json();
+    const games = Array.isArray(payload.rows) ? payload.rows.slice() : [];
+    games.sort((a,b)=>+new Date(a.commence) - +new Date(b.commence));
+    if(!games.length){
+      renderCurrentWeekOdds([], {}, {});
+      return;
+    }
+
+    const homeCodes = Array.from(new Set(games.map(game => resolveTeamCode(game.homeTeam)).filter(Boolean)));
+    let weatherMap = {};
+    let fetchedAt = '';
+    let weatherError = '';
+
+    renderCurrentWeekOdds(games, {}, {});
+
+    if(homeCodes.length){
+      try{
+        const params = new URLSearchParams({ teams: homeCodes.join(',') });
+        const weatherRes = await fetch(`/api/weather?${params.toString()}`, { cache:'no-store' });
+        if(!weatherRes.ok) throw new Error(`Weather fetch failed (${weatherRes.status})`);
+        const weatherPayload = await weatherRes.json();
+        weatherMap = weatherPayload.data || {};
+        fetchedAt = weatherPayload.fetchedAt || '';
+      }catch(err){
+        weatherError = typeof err?.message === 'string' ? err.message : 'Weather service unavailable; showing defaults.';
+      }
+    }
+
+    renderCurrentWeekOdds(games, weatherMap, { fetchedAt, weatherError });
+  }catch(err){
+    const listEl = document.getElementById('current-week-odds-list');
+    const message = typeof err?.message === 'string' ? err.message : 'Unable to load odds.';
+    if(statusEl) statusEl.textContent = message;
+    if(listEl) listEl.innerHTML = '';
+    if(stampEl) stampEl.textContent = 'Weather unavailable';
+  }
+}
+
+const TG_MATCHUP_TAG = {
+  GB:"GB@DET",
+  DET:"GB@DET",
+  KC:"KC@DAL",
+  DAL:"KC@DAL",
+  CIN:"CIN@BAL",
+  BAL:"CIN@BAL",
+  CHI:"CHI@PHI",
+  PHI:"CHI@PHI"
+};
+const XMAS_MATCHUP_TAG = {
+  DAL:"WAS@DAL",
+  WAS:"WAS@DAL",
+  DET:"MIN@DET",
+  MIN:"MIN@DET",
+  DEN:"DEN@KC",
+  KC:"DEN@KC"
+};
 
 const CONTEST_NAME = 'Circa Survivor';
 const INITIAL_ENTRIES = 18718;
@@ -750,7 +1071,7 @@ const ENTRIES_ON_CHALK_TONIGHT = 0;
 const STARTER = {
   meta: {
     season: 2025,
-    currentWeek: 3,
+    currentWeek: 4,
     weekDates: {
       "1":"2025-09-07","2":"2025-09-14","3":"2025-09-21",
       "4":"2025-09-28","5":"2025-10-05","6":"2025-10-12","7":"2025-10-19","8":"2025-10-26",
@@ -772,42 +1093,42 @@ const STARTER = {
   ],
   picks: [
     // Week 1 (per sheet)
-    {week:1, player:"SlyBiz",               team:"ARI", result:"P"},
-    {week:1, player:"Cremaster Reflex 1",   team:"ARI", result:"P"},
-    {week:1, player:"Cremaster Reflex 2",   team:"DEN", result:"P"},
-    {week:1, player:"BulletProof Tiger 1",  team:"DEN", result:"P"},
-    {week:1, player:"BulletProof Tiger 2",  team:"DEN", result:"P"},
-    {week:1, player:"BulletProof Tiger 3",  team:"ARI", result:"P"},
-    {week:1, player:"ChiPhi 1",             team:"JAX", result:"P"},
-    {week:1, player:"Gambling Grocer-7",    team:"CIN", result:"P"},
-    {week:1, player:"Creamsicle Cabana",    team:"WAS", result:"P"},
+    {week:1, player:"Cremaster Reflex 1",   team:"ARI", result:"W"},
+    {week:1, player:"Cremaster Reflex 2",   team:"DEN", result:"W"},
+    {week:1, player:"BulletProof Tiger 1",  team:"DEN", result:"W"},
+    {week:1, player:"BulletProof Tiger 2",  team:"DEN", result:"W"},
+    {week:1, player:"BulletProof Tiger 3",  team:"ARI", result:"W"},
+    {week:1, player:"ChiPhi 1",             team:"JAX", result:"W"},
+    {week:1, player:"Creamsicle Cabana",    team:"WAS", result:"W"},
+    {week:1, player:"Gambling Grocer-7",    team:"CIN", result:"W"},
+    {week:1, player:"SlyBiz",               team:"ARI", result:"W"},
 
     // Week 2
-    {week:2, player:"SlyBiz",               team:"DAL", result:"P"},
-    {week:2, player:"Cremaster Reflex 1",   team:"LAR", result:"P"},
-    {week:2, player:"Cremaster Reflex 2",   team:"ARI", result:"P"},
-    {week:2, player:"BulletProof Tiger 1",  team:"ARI", result:"P"},
-    {week:2, player:"BulletProof Tiger 2",  team:"BAL", result:"P"},
-    {week:2, player:"BulletProof Tiger 3",  team:"DAL", result:"P"},
-    {week:2, player:"ChiPhi 1",             team:"DET", result:"P"},
-    {week:2, player:"Gambling Grocer-7",    team:"DET", result:"P"},
-    {week:2, player:"Creamsicle Cabana",    team:"DAL", result:"P"},
+    {week:2, player:"Cremaster Reflex 1",   team:"LAR", result:"W"},
+    {week:2, player:"Cremaster Reflex 2",   team:"ARI", result:"W"},
+    {week:2, player:"BulletProof Tiger 1",  team:"ARI", result:"W"},
+    {week:2, player:"BulletProof Tiger 2",  team:"BAL", result:"W"},
+    {week:2, player:"BulletProof Tiger 3",  team:"DAL", result:"W"},
+    {week:2, player:"ChiPhi 1",             team:"DET", result:"W"},
+    {week:2, player:"Creamsicle Cabana",    team:"DAL", result:"W"},
+    {week:2, player:"Gambling Grocer-7",    team:"DET", result:"W"},
+    {week:2, player:"SlyBiz",               team:"DAL", result:"W"},
 
     // Week 3 (BUF = WIN Thu)
-    {week:3, player:"SlyBiz",               team:"GB",  result:"P"},
-    {week:3, player:"Cremaster Reflex 1",   team:"SEA", result:"P"},
-    {week:3, player:"Cremaster Reflex 2",   team:"TB",  result:"P"},
-    {week:3, player:"BulletProof Tiger 1",  team:"KC",  result:"P"},
-    {week:3, player:"BulletProof Tiger 2",  team:"SEA", result:"P"},
+    {week:3, player:"Cremaster Reflex 1",   team:"SEA", result:"W"},
+    {week:3, player:"Cremaster Reflex 2",   team:"TB",  result:"W"},
+    {week:3, player:"BulletProof Tiger 1",  team:"KC",  result:"W"},
+    {week:3, player:"BulletProof Tiger 2",  team:"SEA", result:"W"},
     {week:3, player:"BulletProof Tiger 3",  team:"BUF", result:"W"},
-    {week:3, player:"ChiPhi 1",             team:"KC",  result:"P"},
-    {week:3, player:"Gambling Grocer-7",    team:"KC",  result:"P"},
-    {week:3, player:"Creamsicle Cabana",    team:"SEA", result:"P"}
+    {week:3, player:"ChiPhi 1",             team:"KC",  result:"W"},
+    {week:3, player:"Creamsicle Cabana",    team:"SEA", result:"W"},
+    {week:3, player:"Gambling Grocer-7",    team:"KC",  result:"W"},
+    {week:3, player:"SlyBiz",               team:"GB",  result:"L"}
   ]
 };
 
 /* ===== Persistence ===== */
-const LS_KEY = "deadlineNoon_survivor_v4";
+const LS_KEY = "deadlineNoon_survivor_v5";
 function loadData(){ try{ const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw);}catch(e){} return STARTER; }
 function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
 
@@ -1288,6 +1609,9 @@ function renderTracker(){
 
     const usedUp = usedTeamsUpTo(state.data.picks, pl.name, week);
     const {tg, xm} = specialUsage(usedUp);
+    const tgAvailSet = new Set(TG_BF.filter(t=>!usedUp.includes(t)));
+    const xmAvailSet = new Set(XMAS.filter(t=>!usedUp.includes(t)));
+    const specialHighlight = new Set([...tgAvailSet, ...xmAvailSet]);
     const flags = [];
     if(tg === TG_THRESHOLD-1) flags.push(`<span class="chip warn tiny">about to 40% (TG)</span>`);
     if(tg >= TG_THRESHOLD)    flags.push(`<span class="chip info tiny">≥40% (TG)</span>`);
@@ -1313,14 +1637,19 @@ function renderTracker(){
 
     const availChips = status.eliminated
       ? "<span class='muted tiny'>—</span>"
-      : (avail.length? avail.map(c=>`<span class="chip">${cellLogo(c)}${TEAM_NAME[c]}</span>`).join("") : "<span class='muted tiny'>—</span>");
+      : (avail.length
+          ? avail.map(c=>{
+              const cls = specialHighlight.has(c) ? "chip chip-special" : "chip";
+              return `<span class="${cls}">${cellLogo(c)}${TEAM_NAME[c]}</span>`;
+            }).join("")
+          : "<span class='muted tiny'>—</span>");
 
     const usedDetail = usedList.length
       ? usedList.map(p=>{
           const info = resultInfo(p.r);
           const teamLabel = teamNameHtml(p.t, info.class);
           const detail = `${wLabel(p.w)} • ${resultDetailLabel(p.r)}`;
-          return `<span class="chip dim">${cellLogo(p.t)} ${teamLabel} <span class="muted">(${detail})</span></span>`;
+          return `<span class="chip chip-used">${cellLogo(p.t)} ${teamLabel} <span class="muted">(${detail})</span></span>`;
         }).join("")
       : "<span class='muted tiny'>—</span>";
 
@@ -1421,7 +1750,7 @@ function renderSpecialStatus(){
         const info = resultInfo(res);
         const teamLabel = teamNameHtml(p.team, info.class);
         const detail = `${wLabel(p.week)} • ${resultDetailLabel(res)}`;
-        return `<span class="chip logo-chip dim">${cellLogo(p.team)} ${teamLabel} <span class="muted">(${detail})</span></span>`;
+        return `<span class="chip logo-chip chip-used">${cellLogo(p.team)} ${teamLabel} <span class="muted">(${detail})</span></span>`;
       }).join("")
     : `<span class="muted tiny">none</span>`;
 
@@ -1815,10 +2144,10 @@ const HEDGE_DOM = {
 };
 
 const HEDGE_MODE_INFO = {
-  CHIRAQI: { label: 'Chiraqi Dome', blurb: 'Pure ML hedge — stake all on opponent moneyline.' },
-  SOLDIER: { label: 'Soldier Cover', blurb: 'Split stake ML + spread to wash on covers.' },
-  OBLOCK: { label: 'O-Block Lock', blurb: 'ML-heavy 75/25 split — steady protection.' },
-  CCC: { label: 'Capone Cover Collector', blurb: 'Spread-heavy 75/25 split — profit if dog covers.' }
+  CHIRAQI: { label: 'Chiraqi Dome', blurb: 'Full moneyline hedge — every dollar rides the opponent ML.' },
+  SOLDIER: { label: 'Soldier Cover', blurb: 'Even 50/50 split between opponent ML and spread to balance win-or-cover.' },
+  OBLOCK: { label: 'O-Block Lock', blurb: 'Seventy-five / twenty-five ML-heavy blend that tightens the downside.' },
+  CCC: { label: 'Capone Cover Collector', blurb: 'Twenty-five / seventy-five spread-weighted mix to bank when the dog covers.' }
 };
 
 const HEDGE_INDUSTRY_INFO = {
@@ -2404,11 +2733,9 @@ function renderAll(){
   const fallback = state.data.players.find(p=>p.name===state.specialFocus)?.name || state.data.players[0]?.name || "";
   if(fallback) setSpecialFocus(fallback);
   renderSpecialGames();
-  renderPickSelectors();
   renderHedgeSelectors();
   renderHedge();
   renderRooting();
-  document.getElementById("dataEditor").value = JSON.stringify(state.data, null, 2);
   thresholdAlerts();
   lockFutureWeeksUI();
 }
@@ -2432,6 +2759,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   initStandaloneHedgeCalc();
   showTab("overview");
   renderAll();
+  loadCurrentWeekOdds();
   renderSCS();
   lockFutureWeeksUI();
   setInterval(lockFutureWeeksUI, 30000);

@@ -469,10 +469,10 @@ tr:last-child td{border-bottom:0}
       <div class="chi-grid" style="margin-top:8px">
         <label>Mode
           <select id="hedgeMode">
-            <option value="CHIRAQI">Chiraqi Dome — “Full body armor when you ain’t trusting nobody.” (Full ML hedge)</option>
-            <option value="SOLDIER">Soldier Cover — “Playin’ defense at Soldier — bend don’t break.” (Even ML + spread split)</option>
-            <option value="OBLOCK">O-Block Lock — “Protection from those corner boys when they lookin’ to rip and run.” (ML-heavy 75/25 split)</option>
-            <option value="CCC">Capone Cover Collector — “Profit dirty — skim 50% when the dog just covers. Only blow your cover when the favorite steamrolls.” (Spread-heavy 75/25 split)</option>
+            <option value="CHIRAQI">Chiraqi Dome — Full ML hedge; every dollar backs the opponent.</option>
+            <option value="SOLDIER">Soldier Cover — 50/50 split between opponent ML and spread.</option>
+            <option value="OBLOCK">O-Block Lock — 75/25 ML-heavy blend for steadier protection.</option>
+            <option value="CCC">Capone Cover Collector — 25/75 spread-heavy mix to cash on covers.</option>
           </select>
         </label>
         <label>Opponent ML (American)
@@ -521,10 +521,10 @@ const TEAM_NAME = {"ARI":"Cardinals","ATL":"Falcons","BAL":"Ravens","BUF":"Bills
 const NFL = Object.keys(TEAM_NAME);
 
 /* ===== SCS Entries ===== */
-const SCS_FORCED_WINS = { 1: "Cardinals", 2: "Rams", 3: "Seahawks" };
+const SCS_FORCED_WINS = { 1: "Jaguars", 2: "Lions", 3: "Chiefs" };
 const SCS_ENTRIES = [
   { name: "Doigetashirtwiththat", status: "alive" },
-  { name: "SLYBIZ", status: "eliminated", eliminatedWeek: 2, specialAvailability: "Eligible for repurchase window (Week 2 note)" }
+  { name: "SLYBIZ", status: "eliminated", eliminatedWeek: 3, specialAvailability: "Eliminated Week 3 (Packers)" }
 ];
 
 const scsWinBadge = team => `<span class="scs-badge win">WIN · ${team || '—'}</span>`;
@@ -732,20 +732,56 @@ function renderNetworkMeta(containerEl, gameObj){
 }
 
 /* ===== Special Weeks ===== */
-const TG_BF = [];
-const XMAS  = [];
+const TG_BF = ["GB","DET","KC","DAL","CIN","BAL","CHI","PHI"]; // 8
+const XMAS  = ["DAL","WAS","DET","MIN","DEN","KC"];            // 6
 const SPECIAL_THRESHOLD = 0.40;
-const TG_THRESHOLD = 0;
-const XMAS_THRESHOLD = 0;
-const SPECIAL_GAME_GROUPS = [];
-const TG_MATCHUP_TAG = {};
-const XMAS_MATCHUP_TAG = {};
+const TG_THRESHOLD = Math.ceil(TG_BF.length * SPECIAL_THRESHOLD);   // 4
+const XMAS_THRESHOLD = Math.ceil(XMAS.length  * SPECIAL_THRESHOLD); // 3
+const SPECIAL_GAME_GROUPS = [
+  {
+    key:"TG_BF",
+    title:"Thanksgiving & Black Friday Slate",
+    games:[
+      {tag:"TG", date:"Thu • Nov 27", time:"12:30p ET", away:"GB", home:"DET"},
+      {tag:"TG", date:"Thu • Nov 27", time:"4:30p ET", away:"KC", home:"DAL"},
+      {tag:"TG", date:"Thu • Nov 27", time:"8:20p ET", away:"CIN", home:"BAL"},
+      {tag:"BF", date:"Fri • Nov 28", time:"3:00p ET", away:"CHI", home:"PHI"}
+    ]
+  },
+  {
+    key:"XMAS",
+    title:"Christmas Slate",
+    games:[
+      {tag:"XMAS", date:"Thu • Dec 25", time:"1:00p ET", away:"MIN", home:"DET"},
+      {tag:"XMAS", date:"Thu • Dec 25", time:"4:30p ET", away:"WAS", home:"DAL"},
+      {tag:"XMAS", date:"Thu • Dec 25", time:"8:15p ET", away:"DEN", home:"KC"}
+    ]
+  }
+];
+const TG_MATCHUP_TAG = {
+  GB:"GB@DET",
+  DET:"GB@DET",
+  KC:"KC@DAL",
+  DAL:"KC@DAL",
+  CIN:"CIN@BAL",
+  BAL:"CIN@BAL",
+  CHI:"CHI@PHI",
+  PHI:"CHI@PHI"
+};
+const XMAS_MATCHUP_TAG = {
+  DAL:"WAS@DAL",
+  WAS:"WAS@DAL",
+  DET:"MIN@DET",
+  MIN:"MIN@DET",
+  DEN:"DEN@KC",
+  KC:"DEN@KC"
+};
 
 const CONTEST_NAME = 'SuperContest Survivor';
 const INITIAL_ENTRIES = 111;
 const BUY_IN = 5000;
 const TOTAL_PRIZE_POOL = INITIAL_ENTRIES * BUY_IN; // $5,000 winner-take-all buy-in
-const CURRENT_LIVE_ENTRIES = 81; // updated after Week 3 results
+const CURRENT_LIVE_ENTRIES = 91; // updated after Week 3 results
 const ENTRIES_ON_CHALK_TONIGHT = 0;
 
 const USD0 = new Intl.NumberFormat('en-US', {
@@ -773,7 +809,7 @@ function impliedValueContext(){
 const STARTER = {
   meta: {
     season: 2025,
-    currentWeek: 3,
+    currentWeek: 4,
     weekDates: {
       "1":"2025-09-07","2":"2025-09-14","3":"2025-09-21",
       "4":"2025-09-28","5":"2025-10-05","6":"2025-10-12","7":"2025-10-19","8":"2025-10-26",
@@ -783,17 +819,17 @@ const STARTER = {
     }
   },
   players: [
-    { name: "Split Entry" }
+    { name: "Doigetashirtwiththat" }
   ],
   picks: [
-    { week: 1, player: "Split Entry", team: "ARI", result: "W" },
-    { week: 2, player: "Split Entry", team: "DET", result: "W" },
-    { week: 3, player: "Split Entry", team: "KC",  result: "W" }
+    { week: 1, player: "Doigetashirtwiththat", team: "JAX", result: "W" },
+    { week: 2, player: "Doigetashirtwiththat", team: "DET", result: "W" },
+    { week: 3, player: "Doigetashirtwiththat", team: "KC",  result: "W" }
   ]
 };
 
 /* ===== Persistence ===== */
-const LS_KEY = "deadlineNoon_survivor_v4";
+const LS_KEY = "deadlineNoon_survivor_v5";
 function loadData(){ try{ const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw);}catch(e){} return STARTER; }
 function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
 
@@ -1801,10 +1837,10 @@ const HEDGE_DOM = {
 };
 
 const HEDGE_MODE_INFO = {
-  CHIRAQI: { label: 'Chiraqi Dome', blurb: 'Pure ML hedge — stake all on opponent moneyline.' },
-  SOLDIER: { label: 'Soldier Cover', blurb: 'Split stake ML + spread to wash on covers.' },
-  OBLOCK: { label: 'O-Block Lock', blurb: 'ML-heavy 75/25 split — steady protection.' },
-  CCC: { label: 'Capone Cover Collector', blurb: 'Spread-heavy 75/25 split — profit if dog covers.' }
+  CHIRAQI: { label: 'Chiraqi Dome', blurb: 'Full moneyline hedge — every dollar rides the opponent ML.' },
+  SOLDIER: { label: 'Soldier Cover', blurb: 'Even 50/50 split between opponent ML and spread to balance win-or-cover.' },
+  OBLOCK: { label: 'O-Block Lock', blurb: 'Seventy-five / twenty-five ML-heavy blend that tightens the downside.' },
+  CCC: { label: 'Capone Cover Collector', blurb: 'Twenty-five / seventy-five spread-weighted mix to bank when the dog covers.' }
 };
 
 const HEDGE_INDUSTRY_INFO = {
